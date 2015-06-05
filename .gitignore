@@ -1,0 +1,11 @@
+#ignore all
+*
+
+# except
+!.gitignore
+!*.py
+!*.md
+!*.png
+
+# sub-directories
+!*/
