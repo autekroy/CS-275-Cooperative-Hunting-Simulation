@@ -2,7 +2,7 @@
 import pickle
 import random
 import math
-import numpy
+import numpy as np
 from pybrain.structure import RecurrentNetwork, FeedForwardNetwork, LinearLayer, SigmoidLayer, FullConnection
 
 class Environment:
@@ -26,6 +26,15 @@ class Environment:
     self.deaths = []
     self.animats = []
     saved_states = self.load()
+
+
+    # prey
+    self.preys = []
+    num_preys = 30
+    for i in range(num_preys):
+      p = Prey(random.random() * 360, random.random() * 360)
+      self.preys.append(p)
+
     while len(self.animats) < num_animats:
       pos = self.findSpace(Animat.radius, (0, self.height))
       if len(saved_states) > 0:
@@ -36,7 +45,8 @@ class Environment:
 	a = Animat(pos[0], pos[1], random.random() * 360)
 	a.generation = 1
       self.animats.append(a)
-    
+  # prey
+
   # line of sight
   def line_of_sight(self, animat):
     step_x = int(math.cos(animat.direction*math.pi / 180) * 10)
@@ -77,6 +87,10 @@ class Environment:
       print str(tmpLog) + "   " + str(tmpMoveLog)
       self.moveLog.append( tmpMoveLog )
       self.animats.remove(self.deaths.pop(0))
+    
+    # update each prey
+    for prey in self.preys:
+      prey.update(self.preys)
 
     # update each animat
     for animat in self.animats:
@@ -152,6 +166,92 @@ class Environment:
       f = open(self.filename, 'w')
       pickle.dump(self.animats, f)
       f.close()
+
+# prey
+class Prey:
+  def __init__(self, x, y):
+    self.mag = 3
+
+    self.loc = [float(x), float(y)]
+    self.vel = [10., 0.]
+    self.acc = [0., 0.]
+    self.maxForce = 10
+    self.mass = 12
+    self.r = self.mass / 2    
+  
+  def update(self, preys):
+    self.preyForce(preys)
+    self.vel = np.add(self.vel, self.acc)
+    self.loc = np.add(self.loc, self.vel)
+    self.acc = [0., 0.]
+
+  def applyF(self, force):
+    force /= self.mass
+    self.acc = np.add(self.acc, force)
+
+  def avoidForce(self, preys):
+    count = 0
+    locSum = [0., 0.]
+    for p in preys:
+      separation = self.mass + (20*self.mag)
+      dist = np.subtract(p.loc, self.loc)
+      d = np.linalg.norm(dist)
+      if d != 0 and d < separation:
+        locSum = np.add(locSum, p.loc)
+        count += 1
+    if count > 0:
+      locSum /= count
+      avoidVec = np.subtract(self.loc, locSum)
+      #np.linalg.norm()
+      self.applyF(avoidVec)
+
+  def approachForce(self, preys):
+    count = 0
+    locSum = [0., 0.]
+    for p in preys:
+      approachRadius = self.mass + (60*self.mag)
+      dist = np.subtract(p.loc, self.loc)
+      d = np.linalg.norm(dist)
+      if d != 0 and d < approachRadius:
+        locSum = np.add(locSum, p.loc)
+        count += 1
+    if count > 0:
+      locSum /= count
+      approachVec = np.subtract(locSum, self.loc)
+      #np.linalg.norm()
+      self.applyF(approachVec)
+
+  def alignForce(self, preys):
+    count = 0
+    velSum = [0., 0.]
+    for p in preys:
+      alignRadius = self.mass + (100*self.mag)
+      dist = np.subtract(p.loc, self.loc)
+      d = np.linalg.norm(dist)
+      if d != 0 and d < alignRadius:
+        velSum = np.add(velSum, p.vel)
+        count += 1
+      if count > 0:
+        velSum /= count
+        alignVec = velSum
+        self.applyF(alignVec)
+
+  def preyForce(self, preys):
+    self.avoidForce(preys)
+    self.approachForce(preys)
+    self.alignForce(preys)
+
+'''
+    if self.loc[0] <= 0:
+      self.loc[0] = self.width
+    elif self.loc[0] > self.width:
+      self.loc[0] = 0
+
+    if self.loc[1] <= 0:
+      self.loc[1] = self.height
+    elif self.loc[1] > self.height:
+      self.loc[1] = 0     
+'''
 
 # Animats     
 class Animat:
