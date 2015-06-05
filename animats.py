@@ -20,7 +20,7 @@ class Environment:
     # foods
     self.num_foods = num_animats
     self.foods = []
-    self.produceFoods
+    # self.produceFoods
     # animats
     self.num_animats = num_animats
     self.deaths = []
@@ -60,18 +60,6 @@ class Environment:
 	if not self.collision(x, y, radius):
 	  return (x, y)
 
-  def produceFoods(self, train=False):
-    fruit_bounds = (0, self.height / 7)
-    veggie_bounds =  (self.height - self.height / 7, self.height)
-    if self.training_mode:
-      fruit_bounds = (0, self.height)
-      veggie_bounds = (0, self.height)
-    while len(filter(lambda f:isinstance(f,Fruit), self.foods)) < self.num_foods:
-      pos = self.findSpace(Food.radius, fruit_bounds)
-      self.foods.append(Fruit(pos[0], pos[1]))
-    while len(filter(lambda f:isinstance(f,Veggie), self.foods)) < self.num_foods:
-      pos = self.findSpace(Food.radius, veggie_bounds)
-      self.foods.append(Veggie(pos[0], pos[1]))
 
   def update(self):
     # if an animat died, the two fittest animats mate
@@ -119,7 +107,7 @@ class Environment:
 	  self.foods.append(Veggie(animat.x - (step_x*10), animat.y - (step_y*10)))
 	animat.food = None
       # keep the food supply constant
-      self.produceFoods()
+      # self.produceFoods()
       # DEATH 
       if animat not in self.deaths \
       and (animat.fruit_hunger + animat.veggie_hunger < 1000):

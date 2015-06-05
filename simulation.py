@@ -89,4 +89,4 @@ if __name__ == "__main__":
 	map(lambda r: fLog.write( str(r) + '\n'), simulation.env.log)
 	fLog.close()
         sys.exit()
-    simulation.update(10)
+    simulation.update(1)
