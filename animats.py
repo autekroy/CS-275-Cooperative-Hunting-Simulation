@@ -52,7 +52,7 @@ class Environment:
         a.x = pos[0]
         a.y = pos[1]
       else:
-        a = Predator(pos[0], pos[1], random.random() * 360)
+        a = Predator(pos[0], pos[1])
         a.generation = 1
       self.animats.append(a)
   # prey
@@ -61,8 +61,8 @@ class Environment:
   def line_of_sight(self, animat):
     step_x = int(math.cos(animat.direction*math.pi / 180) * 10)
     step_y = int(math.sin(animat.direction*math.pi / 180) * 10)
-    new_x = animat.x + step_x
-    new_y = animat.y + step_y
+    new_x = animat.loc[0] + step_x
+    new_y = animat.loc[1] + step_y
     sees = None
     while not sees:
       new_x += step_x
@@ -110,31 +110,33 @@ class Environment:
       step = 3
       step_x = int(math.cos(animat.direction*math.pi / 180) * step)
       step_y = int(math.sin(animat.direction*math.pi / 180) * step)
-      animat.touching = self.collision(animat.x + step_x, animat.y + step_y, Predator.radius, animat)
+      animat.touching = self.collision(animat.loc[0] + step_x, animat.loc[1] + step_y, Predator.radius, animat)
       # update
       animat.update()
+      animat.loc[0] = step_x + animat.loc[0]
+      animat.loc[1] = step_y + animat.loc[1]
       # moving
-      if animat.wants_to_move and \
-	(not animat.touching or isinstance(animat.touching,Food)):
-	animat.x = step_x + animat.x
-	animat.y = step_y + animat.y
+ #      if animat.wants_to_move and \
+	# (not animat.touching or isinstance(animat.touching,Food)):
+	# animat.x = step_x + animat.x
+	# animat.y = step_y + animat.y
 
       # pickup
-      if isinstance(animat.touching, Food) and animat.wants_to_pickup:
-	self.foods.remove(animat.touching)
-        animat.food = animat.touching
-      # putdown
-      if animat.wants_to_putdown:
-	if isinstance(animat.food, Fruit):
-	  self.foods.append(Fruit(animat.x - (step_x*10), animat.y - (step_y*10)))
-	elif isinstance(animat.food, Veggie):
-	  self.foods.append(Veggie(animat.x - (step_x*10), animat.y - (step_y*10)))
-	animat.food = None
+ #      if isinstance(animat.touching, Food) and animat.wants_to_pickup:
+	# self.foods.remove(animat.touching)
+ #        animat.food = animat.touching
+ #      # putdown
+ #      if animat.wants_to_putdown:
+	# if isinstance(animat.food, Fruit):
+	#   self.foods.append(Fruit(animat.x - (step_x*10), animat.y - (step_y*10)))
+	# elif isinstance(animat.food, Veggie):
+	#   self.foods.append(Veggie(animat.x - (step_x*10), animat.y - (step_y*10)))
+	# animat.food = None
       # keep the food supply constant
       # self.produceFoods()
       # DEATH 
       if animat not in self.deaths \
-      and (animat.fruit_hunger + animat.veggie_hunger < 1000):
+      and (animat.energy < 0):
 	self.deaths.append(animat)
         
 
@@ -152,7 +154,7 @@ class Environment:
     if without:
       animats.remove(without)
     for animat in animats:
-      if (x - animat.x)**2 + (y - animat.y)**2 <= Predator.radius**2:
+      if (x - animat.loc[0])**2 + (y - animat.loc[1])**2 <= Predator.radius**2:
 	return animat
     # no collision
     return None
@@ -268,17 +270,29 @@ class Predator:
   radius = 30
 
   def __init__(self, x, y):
+    
+    self.mag = 3
+
     #position
-    self.position = [x,y]
+    self.loc = [float(x), float(y)]
+    # velocity
+    self.vel = [10., 0.]
+
+    self.acc = [0., 0.]
+    self.maxForce = 10
+    self.mass = 12
+    self.r = self.mass / 2   
+
+
+
     #set default engery
     self.energy = Default_Engery
 
     self.targetPrey = None
 
-    self.velocity = 0 
 
     #set orientation range in (0 - 359 degrees)
-    self.direction = None
+    self.direction = 0
 
     self.touching = None
     self.sees = None
@@ -321,7 +335,7 @@ class Predator:
     '''decision = self.net.activate(sensors)'''
     # get a little hungry no matter what
     #self.age += 1
-    #self.get_hungry(.5)
+    self.get_hungry(.5)
     # move forward
     #self.wants_to_move = (decision[0] > self.move_threshold)
     # rotate left 
@@ -354,8 +368,7 @@ class Predator:
       #self.food = None
       
   def get_hungry(self, amount):
-    self.fruit_hunger -= amount
-    self.veggie_hunger -= amount
+    self.energy -= amount
 
   # returns a child with a genetic combination of neural net weights of 2 parents
   def mate(self, other):
