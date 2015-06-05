@@ -25,12 +25,14 @@ class Simulation:
     self.animat_sprite  = pygame.image.load("resources/animat.png")
     self.fruit          = pygame.image.load("resources/banana.png")
     self.veggie         = pygame.image.load("resources/tomato.png")
+    self.prey           = pygame.image.load("resources/prey.png")
 
     # modify pictures to appropriate sizes
     self.animat_sprite = pygame.transform.scale(self.animat_sprite, (32,32))
     self.bg            = pygame.transform.scale(self.bg, (1000, 700))
     self.fruit         = pygame.transform.scale(self.fruit, (26, 26))
     self.veggie        = pygame.transform.scale(self.veggie, (26, 26))
+    self.prey          = pygame.transform.scale(self.prey, (25, 25))
 
     self.env = animats.Environment(num_animats, width, height, saved_nets)
 
@@ -44,6 +46,10 @@ class Simulation:
 
     # repaint
     self.screen.blit(self.bg, (0,0))
+
+    # paint prey
+    for prey in self.env.preys:
+      self.screen.blit(self.prey, (prey.loc[0], prey.loc[1]))
 
     # paint food
     for food in self.env.foods:
