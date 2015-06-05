@@ -58,7 +58,7 @@ class Simulation:
 
     # paint animats
     for animat in self.env.animats:
-      self.screen.blit(pygame.transform.rotate(self.animat_sprite, 360 - animat.direction), (animat.x - animats.Animat.radius, animat.y - animats.Animat.radius))
+      self.screen.blit(pygame.transform.rotate(self.animat_sprite, 360 - animat.direction), (animat.x - animats.Predator.radius, animat.y - animats.Predator.radius))
       if animat.food:
 	if isinstance(animat.food, animats.Fruit):
 	  self.screen.blit(self.fruit, \

@@ -3,7 +3,16 @@ import pickle
 import random
 import math
 import numpy
+from enum import Enum
 from pybrain.structure import RecurrentNetwork, FeedForwardNetwork, LinearLayer, SigmoidLayer, FullConnection
+Default_Engery = 50000
+
+class Behavior(Enum): 
+    stay = 0
+    stalk  = 1
+    hunt = 2
+
+
 
 class Environment:
   def __init__(self, num_animats, width, height, filename):
@@ -22,19 +31,19 @@ class Environment:
     self.foods = []
     # self.produceFoods
     # animats
-    self.num_animats = num_animats
+    self.num_animats = 3
     self.deaths = []
     self.animats = []
     saved_states = self.load()
     while len(self.animats) < num_animats:
-      pos = self.findSpace(Animat.radius, (0, self.height))
+      pos = self.findSpace(Predator.radius, (0, self.height))
       if len(saved_states) > 0:
-	a = saved_states.pop(0)
-	a.x = pos[0]
-	a.y = pos[1]
+        a = saved_states.pop(0)
+        a.x = pos[0]
+        a.y = pos[1]
       else:
-	a = Animat(pos[0], pos[1], random.random() * 360)
-	a.generation = 1
+        a = Predator(pos[0], pos[1], random.random() * 360)
+        a.generation = 1
       self.animats.append(a)
     
   # line of sight
@@ -47,7 +56,7 @@ class Environment:
     while not sees:
       new_x += step_x
       new_y += step_y
-      sees = self.collision(new_x, new_y, Animat.radius, animat)
+      sees = self.collision(new_x, new_y, Predator.radius, animat)
     return sees
 
   def findSpace(self, radius, bounds):
@@ -65,7 +74,7 @@ class Environment:
     # if an animat died, the two fittest animats mate
     while len(self.deaths) > 0: 
       fittest = sorted(self.animats, key=lambda a: -a.avg_fruit_hunger -a.avg_veggie_hunger)
-      pos = self.findSpace(Animat.radius, (0, self.height))
+      pos = self.findSpace(predator.radius, (0, self.height))
       child = fittest[0].mate(fittest[1])
       child.x = pos[0]
       child.y = pos[1]
@@ -86,7 +95,7 @@ class Environment:
       step = 3
       step_x = int(math.cos(animat.direction*math.pi / 180) * step)
       step_y = int(math.sin(animat.direction*math.pi / 180) * step)
-      animat.touching = self.collision(animat.x + step_x, animat.y + step_y, Animat.radius, animat)
+      animat.touching = self.collision(animat.x + step_x, animat.y + step_y, Predator.radius, animat)
       # update
       animat.update()
       # moving
@@ -128,7 +137,7 @@ class Environment:
     if without:
       animats.remove(without)
     for animat in animats:
-      if (x - animat.x)**2 + (y - animat.y)**2 <= Animat.radius**2:
+      if (x - animat.x)**2 + (y - animat.y)**2 <= Predator.radius**2:
 	return animat
     # no collision
     return None
@@ -154,98 +163,94 @@ class Environment:
       f.close()
 
 # Animats     
-class Animat:
+class Predator:
   radius = 30
 
-  def __init__(self, x, y, direction):
-    self.age = 0
-    # position
-    self.x = x
-    self.y = y
-    # number of going back and forth for different foods
-    self.backForth = 0
-    self.LastFood = None # the last food animat ate
-    # orientation (0 - 359 degrees)
-    self.direction = direction
-    # carrying food
-    self.food = None
-    # touching anything
+  def __init__(self, x, y):
+    #position
+    self.position = [x,y]
+    #set default engery
+    self.energy = Default_Engery
+
+    self.targetPrey = None
+
+    self.velocity = 0 
+
+    #set orientation range in (0 - 359 degrees)
+    self.direction = None
+
     self.touching = None
     self.sees = None
-    # hunger sensor
-    self.fruit_hunger = 2000
-    self.veggie_hunger = 2000
-    self.avg_fruit_hunger = 0
-    self.avg_veggie_hunger = 0
+
+    self.behavior = Behavior.stay
+
     # neural net
+    
     self.net = FeedForwardNetwork()
-    self.net.addInputModule(LinearLayer(12, name='in'))
-    self.net.addModule(SigmoidLayer(13, name='hidden'))
-    self.net.addOutputModule(LinearLayer(6, name='out'))
+    self.net.addInputModule(LinearLayer(9, name='in'))
+    self.net.addModule(SigmoidLayer(9, name='hidden'))
+    self.net.addOutputModule(LinearLayer(3, name='out'))
     self.net.addConnection(FullConnection(self.net['in'], self.net['hidden']))
     self.net.addConnection(FullConnection(self.net['hidden'], self.net['out']))
     self.net.sortModules()
+
     # thresholds for deciding an action
     self.move_threshold = 0
-    self.pickup_threshold = 0
-    self.putdown_threshold = 0
-    self.eat_threshold = 0
+    #self.pickup_threshold = 0
+    #self.putdown_threshold = 0
+    #self.eat_threshold = 0
     
   def update(self):
-    sensors = (2000*int(isinstance(self.sees, Fruit) or \
-		        (isinstance(self.sees, Animat) and \
-	                 isinstance(self.sees.food, Fruit))),
-	       2000*int(isinstance(self.sees, Veggie) or \
-	                (isinstance(self.sees, Animat) and \
-		         isinstance(self.sees.food, Veggie))),
-	       2000*int(isinstance(self.sees, Animat)),
-	       2000*int(isinstance(self.sees, Environment)),
-	       2000*int(isinstance(self.food, Fruit)),
-	       2000*int(isinstance(self.food, Veggie)),
-	       self.fruit_hunger,
-	       self.veggie_hunger,
-	       2000*int(isinstance(self.touching, Fruit) or \
-		        (isinstance(self.touching, Animat) and \
-		         isinstance(self.touching.food, Fruit))),
-	       2000*int(isinstance(self.touching, Veggie) or \
-		        (isinstance(self.touching, Animat) and \
-		         isinstance(self.touching.food, Veggie))),
-	       2000*int(isinstance(self.touching, Animat)),
-	       2000*int(isinstance(self.touching, Environment)))
-    decision = self.net.activate(sensors)
+
+    ''' self is lion 0
+     lion 1 position - self position
+     lion 2 position - self position
+     zibra 1 position - self position
+     zibra 2 position - self postion
+     self Behavior
+     lion 1 Behavior
+     lion 2 Behavior
+     zibra 1 behavior
+     zibra 2 behavior
+    '''
+
+    sensors = (
+
+      )
+    '''decision = self.net.activate(sensors)'''
     # get a little hungry no matter what
-    self.age += 1
-    self.get_hungry(.5)
+    #self.age += 1
+    #self.get_hungry(.5)
     # move forward
-    self.wants_to_move = (decision[0] > self.move_threshold)
+    #self.wants_to_move = (decision[0] > self.move_threshold)
     # rotate left 
-    self.direction -= decision[1]
+    #self.direction -= decision[1]
     # rotate right 
-    self.direction += decision[2]
+    #self.direction += decision[2]
 
     # pickup
-    self.wants_to_pickup = ((decision[3] > self.pickup_threshold) 
-			    and not self.food)
+    #self.wants_to_pickup = ((decision[3] > self.pickup_threshold) 
+			    #and not self.food)
     # putdown
-    self.wants_to_putdown = ((decision[4] > self.putdown_threshold)
-			     and self.food)
+    #self.wants_to_putdown = ((decision[4] > self.putdown_threshold)
+			     #and self.food)
     # eat
-    if (decision[5] > self.eat_threshold) and self.food:
-      if isinstance(self.food, Fruit):
-	self.fruit_hunger = 2000 if (self.fruit_hunger > 1800) else (self.fruit_hunger + 200)
-        self.avg_fruit_hunger = (self.avg_fruit_hunger + self.fruit_hunger) / 2
-	if isinstance(self.LastFood, Veggie): # the last food is different from eating food
-          self.backForth = self.backForth + 1
+    #if (decision[5] > self.eat_threshold) and self.food:
+      #if isinstance(self.food, Fruit):
+	#self.fruit_hunger = 2000 if (self.fruit_hunger > 1800) else (self.fruit_hunger + 200)
+        #self.avg_fruit_hunger = (self.avg_fruit_hunger + self.fruit_hunger) / 2
+	#if isinstance(self.LastFood, Veggie): # the last food is different from eating food
+          #self.backForth = self.backForth + 1
           # print self.backForth
-        self.LastFood = Fruit(0, 0)
-      elif isinstance(self.food, Veggie):
-        self.veggie_hunger = 2000 if (self.veggie_hunger > 1800) else (self.veggie_hunger + 200)
-        self.avg_veggie_hunger = (self.avg_veggie_hunger + self.veggie_hunger) / 2
-	if isinstance(self.LastFood, Fruit):
-          self.backForth = self.backForth + 1
+        #self.LastFood = Fruit(0, 0)
+      #elif isinstance(self.food, Veggie):
+        #self.veggie_hunger = 2000 if (self.veggie_hunger > 1800) else (self.veggie_hunger + 200)
+        #self.avg_veggie_hunger = (self.avg_veggie_hunger + self.veggie_hunger) / 2
+	#if isinstance(self.LastFood, Fruit):
+          #self.backForth = self.backForth + 1
           # print self.backForth
-        self.LastFood = Veggie(0, 0)
-      self.food = None
+        #self.LastFood = Veggie(0, 0)
+      #self.food = None
       
   def get_hungry(self, amount):
     self.fruit_hunger -= amount
@@ -253,7 +258,7 @@ class Animat:
 
   # returns a child with a genetic combination of neural net weights of 2 parents
   def mate(self, other):
-    child = Animat(0,0, random.random() * 360)
+    child = Predator(0,0, random.random() * 360)
     child.generation = min(self.generation, other.generation) + 1
     # inherit parents connection weights
     for i in range(0,len(self.net.params)):
