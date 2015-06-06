@@ -4,49 +4,64 @@ import random
 import math
 from enum import Enum
 import numpy as np
+import sys
 
 from pybrain.structure import RecurrentNetwork, FeedForwardNetwork, LinearLayer, SigmoidLayer, FullConnection
-Default_Engery = 50000
+
+preyFleeing = 0
+Default_Engery = 100
 
 class Behavior(Enum): 
     stay = 0
-    stalk  = 1
-    hunt = 2
+    stalk  = -1
+    hunt = 1
 
+def normalize(v):
+    norm = np.linalg.norm(v)
+    if norm == 0: 
+       return v
+    return v/norm
+
+def limit(v, lim):
+  norm = np.linalg.norm(v)
+  if norm == 0:
+    return v
+  return np.multiply(normalize(v), lim)
 
 
 class Environment:
   def __init__(self, num_predator, width, height, filename):
+
     # training mode (foods everywhere)
     self.training_mode = False
     # environment
     self.width = width
     self.height = height
+    # print self.width/2, self.height/2
+    self.num_predator = num_predator
     # record log
     self.log = []
     self.moveLog = []
     # save state
     self.filename = filename
-    # foods
-    self.num_foods = num_predator
-    self.foods = []
-    # self.produceFoods
+
     # animats
-    self.num_predator = 3
     self.deaths = []
     self.predators = []
+    self.placeRadius = 200;
     saved_states = self.load()
 
 
     # prey
     self.preys = []
-    num_preys = 30
+    num_preys = 5
     for i in range(num_preys):
-      p = Prey(random.random() * 360, random.random() * 360)
+      p = Prey(400+random.random() * 200, 250+random.random() * 200)
       self.preys.append(p)
 
-    while len(self.predators) < num_predator:
-      pos = self.findSpace(Predator.radius, (0, self.height))
+    for i in range(self.num_predator):
+      # print i
+      pos = self.findSpace(i, self.placeRadius, Predator.radius)
       if len(saved_states) > 0:
         a = saved_states.pop(0)
         a.x = pos[0]
@@ -55,9 +70,8 @@ class Environment:
         a = Predator(pos[0], pos[1])
         a.generation = 1
       self.predators.append(a)
-  # prey
 
-  # line of sight
+   # line of sight
   def line_of_sight(self, animat):
     step_x = int(math.cos(animat.direction*math.pi / 180) * 10)
     step_y = int(math.sin(animat.direction*math.pi / 180) * 10)
@@ -70,37 +84,34 @@ class Environment:
       sees = self.collision(new_x, new_y, Predator.radius, animat)
     return sees
 
-  def findSpace(self, radius, bounds):
-    spawns_x = range(0, self.width, 10)
-    spawns_y = range(bounds[0], bounds[1], 10)
-    random.shuffle(spawns_x)
-    random.shuffle(spawns_y)
-    for x in spawns_x:
-      for y in spawns_y:
-	if not self.collision(x, y, radius):
-	  return (x, y)
+  def findSpace(self, count, placeRadius, AnimateRadius):
+    noCoverDegree = 20
+    degree = random.randrange(noCoverDegree , 360.0/self.num_predator - noCoverDegree)  # random degree
+    degree = degree + count * 360.0/self.num_predator
+    print degree
+    degree = math.radians(degree) #Convert angle from degrees to radians.
+    radius = random.randrange(placeRadius, placeRadius + 20)
+    x = math.cos(degree) * radius
+    y = math.sin(degree) * radius
+
+    centerX = self.width / 2
+    centerY = self.height /2
+    # print math.cos(math.radians(360)), math.sin(math.radians(270))
+    # print centerX, centerY, x, y, degree
+    x = centerX + x
+    y = centerY + y
+    return (x, y)
 
 
   def update(self):
     # if an animat died, the two fittest predators mate
-    while len(self.deaths) > 0: 
-      fittest = sorted(self.predators, key=lambda a: -a.avg_fruit_hunger -a.avg_veggie_hunger)
-      pos = self.findSpace(predator.radius, (0, self.height))
-      child = fittest[0].mate(fittest[1])
-      child.x = pos[0]
-      child.y = pos[1]
-      self.predators.append(child)
-      # log dead predators stats
-      tmpLog = (self.deaths[0].generation, self.deaths[0].age )
-      self.log.append( tmpLog )
-      tmpMoveLog = (self.deaths[0].generation, self.deaths[0].backForth)
-      print str(tmpLog) + "   " + str(tmpMoveLog)
-      self.moveLog.append( tmpMoveLog )
+    while len(self.deaths) > 0:
       self.predators.remove(self.deaths.pop(0))
+      print "die"
     
     # update each prey
     for prey in self.preys:
-      prey.update(self.preys)
+      prey.update(self.preys, self.predators)
 
     # update each animat
     for animat in self.predators:
@@ -112,32 +123,15 @@ class Environment:
       step_y = int(math.sin(animat.direction*math.pi / 180) * step)
       animat.touching = self.collision(animat.loc[0] + step_x, animat.loc[1] + step_y, Predator.radius, animat)
       # update
-      animat.update()
+      animat.update(self.predators, self.preys)
+
+      # moviing
       animat.loc[0] = step_x + animat.loc[0]
       animat.loc[1] = step_y + animat.loc[1]
-      # moving
- #      if animat.wants_to_move and \
-	# (not animat.touching or isinstance(animat.touching,Food)):
-	# animat.x = step_x + animat.x
-	# animat.y = step_y + animat.y
 
-      # pickup
- #      if isinstance(animat.touching, Food) and animat.wants_to_pickup:
-	# self.foods.remove(animat.touching)
- #        animat.food = animat.touching
- #      # putdown
- #      if animat.wants_to_putdown:
-	# if isinstance(animat.food, Fruit):
-	#   self.foods.append(Fruit(animat.x - (step_x*10), animat.y - (step_y*10)))
-	# elif isinstance(animat.food, Veggie):
-	#   self.foods.append(Veggie(animat.x - (step_x*10), animat.y - (step_y*10)))
-	# animat.food = None
-      # keep the food supply constant
-      # self.produceFoods()
       # DEATH 
-      if animat not in self.deaths \
-      and (animat.energy < 0):
-	self.deaths.append(animat)
+      if animat not in self.deaths and (animat.energy < 0):
+        self.deaths.append(animat)
         
 
   def collision(self, x, y, radius, without=None):
@@ -145,17 +139,14 @@ class Environment:
     if (y + radius) > self.height or (x + radius) > self.width  \
     or (x - radius) < 0 or (y - radius) < 0:
       return self
-    # check food collision
-    for food in self.foods:
-      if (x - food.x)**2 + (y - food.y)**2 <= Food.radius**2:
-	return food
+
     # check animat-animat collision
     predators = list(self.predators)
     if without:
       predators.remove(without)
     for animat in predators:
       if (x - animat.loc[0])**2 + (y - animat.loc[1])**2 <= Predator.radius**2:
-	return animat
+        return animat
     # no collision
     return None
 
@@ -182,21 +173,34 @@ class Environment:
 # prey
 class Prey:
   def __init__(self, x, y):
-    self.mag = 3
 
     self.loc = [float(x), float(y)]
-    self.vel = [10., 0.]
+    self.vel = [0., 0.]
     self.acc = [0., 0.]
-    self.maxForce = 10
-    self.mass = 12
-    self.r = self.mass / 2    
+    self.maxForce = 3
+    self.mass = 10   
   
-  def update(self, preys):
-    self.preyForce(preys)
-    self.vel = np.add(self.vel, self.acc)
-    self.loc = np.add(self.loc, self.vel)
+  def update(self, preys, preds):
+    self.repelForce(preds, 50)
+    if preyFleeing == 1:
+      self.preyForce(preys)
+      self.vel = np.add(self.vel, self.acc)
+      self.loc = np.add(self.loc, self.vel)      
+    else:
+      self.vel = [random.random(), random.random()]
+      self.loc = np.add(self.loc, self.vel)
     self.acc = [0., 0.]
+    '''#for testing
+    if self.loc[0] <= 0:
+      self.loc[0] = self.width
+    elif self.loc[0] > self.width:
+      self.loc[0] = 0
 
+    if self.loc[1] <= 0:
+      self.loc[1] = self.height
+    elif self.loc[1] > self.height:
+      self.loc[1] = 0 
+    #------------end of testing'''
   def applyF(self, force):
     force /= self.mass
     self.acc = np.add(self.acc, force)
@@ -205,7 +209,7 @@ class Prey:
     count = 0
     locSum = [0., 0.]
     for p in preys:
-      separation = self.mass + (20*self.mag)
+      separation = self.mass + 20
       dist = np.subtract(p.loc, self.loc)
       d = np.linalg.norm(dist)
       if d != 0 and d < separation:
@@ -214,14 +218,14 @@ class Prey:
     if count > 0:
       locSum /= count
       avoidVec = np.subtract(self.loc, locSum)
-      #np.linalg.norm()
+      avoidVec = limit(avoidVec, self.maxForce*2.5)
       self.applyF(avoidVec)
 
   def approachForce(self, preys):
     count = 0
     locSum = [0., 0.]
     for p in preys:
-      approachRadius = self.mass + (60*self.mag)
+      approachRadius = self.mass + 60
       dist = np.subtract(p.loc, self.loc)
       d = np.linalg.norm(dist)
       if d != 0 and d < approachRadius:
@@ -230,14 +234,14 @@ class Prey:
     if count > 0:
       locSum /= count
       approachVec = np.subtract(locSum, self.loc)
-      #np.linalg.norm()
+      approachVec = limit(approachVec, self.maxForce)
       self.applyF(approachVec)
 
   def alignForce(self, preys):
     count = 0
     velSum = [0., 0.]
     for p in preys:
-      alignRadius = self.mass + (100*self.mag)
+      alignRadius = self.mass + 100
       dist = np.subtract(p.loc, self.loc)
       d = np.linalg.norm(dist)
       if d != 0 and d < alignRadius:
@@ -246,7 +250,23 @@ class Prey:
       if count > 0:
         velSum /= count
         alignVec = velSum
+        alignVec = limit(alignVec, self.maxForce)
         self.applyF(alignVec)
+
+  def repelForce(self, preds, r):
+    for pred in preds:
+      futurePos = np.add(self.loc, self.vel)
+      dist = np.subtract(pred.loc, futurePos)
+      d = np.linalg.norm(dist)
+
+      if d <= r:
+        global preyFleeing
+        if preyFleeing == 0:
+          preyFleeing = 1
+        repelVec = np.subtract(self.loc, pred.loc)
+        normalize(repelVec)
+        repelVec = np.multiply(repelVec, self.maxForce*5)
+        self.applyF(repelVec)
 
   def preyForce(self, preys):
     self.avoidForce(preys)
@@ -268,11 +288,14 @@ class Prey:
 # Animats     
 class Predator:
   radius = 30
-
   def __init__(self, x, y):
-    
+    #for testing
+    #self.width = 1000
+    #self.height = 700
+    #-----------end of testing
+    self.timeframe = 0
+    self.age = 0 # how long does it live
     self.mag = 3
-
     #position
     self.loc = [float(x), float(y)]
     # velocity
@@ -283,24 +306,19 @@ class Predator:
     self.mass = 12
     self.r = self.mass / 2   
 
-
-
     #set default engery
-    self.energy = Default_Engery
-
+    self.energy = Default_Engery 
     self.targetPrey = None
-
 
     #set orientation range in (0 - 359 degrees)
     self.direction = 0
 
     self.touching = None
     self.sees = None
-
     self.behavior = Behavior.stay
 
+
     # neural net
-    
     self.net = FeedForwardNetwork()
     self.net.addInputModule(LinearLayer(9, name='in'))
     self.net.addModule(SigmoidLayer(9, name='hidden'))
@@ -311,12 +329,24 @@ class Predator:
 
     # thresholds for deciding an action
     self.move_threshold = 0
-    #self.pickup_threshold = 0
-    #self.putdown_threshold = 0
-    #self.eat_threshold = 0
-    
-  def update(self):
 
+  def update(self, predators, preys):
+    self.PredForce( preys, predators )
+    self.vel = np.add(self.vel, self.acc)
+    self.loc = np.add(self.loc, self.vel)
+    self.acc = [0., 0.]
+    '''#for testing
+    if self.loc[0] <= 0:
+      self.loc[0] = self.width
+    elif self.loc[0] > self.width:
+      self.loc[0] = 0
+    if self.loc[1] <= 0:
+      self.loc[1] = self.height
+    elif self.loc[1] > self.height:
+      self.loc[1] = 0 
+    if self.timeframe%5 == 0:
+      self.record()
+    '''
     ''' self is lion 0
      lion 1 position - self position
      lion 2 position - self position
@@ -329,13 +359,12 @@ class Predator:
      zibra 2 behavior
     '''
 
-    sensors = (
-
-      )
+    sensors = ()
     '''decision = self.net.activate(sensors)'''
     # get a little hungry no matter what
-    #self.age += 1
-    self.get_hungry(.5)
+    self.age += 1
+    self.get_hungry(self.behavior)
+    self.timeframe += 1
     # move forward
     #self.wants_to_move = (decision[0] > self.move_threshold)
     # rotate left 
@@ -343,50 +372,102 @@ class Predator:
     # rotate right 
     #self.direction += decision[2]
 
-    # pickup
-    #self.wants_to_pickup = ((decision[3] > self.pickup_threshold) 
-			    #and not self.food)
-    # putdown
-    #self.wants_to_putdown = ((decision[4] > self.putdown_threshold)
-			     #and self.food)
-    # eat
-    #if (decision[5] > self.eat_threshold) and self.food:
-      #if isinstance(self.food, Fruit):
-	#self.fruit_hunger = 2000 if (self.fruit_hunger > 1800) else (self.fruit_hunger + 200)
-        #self.avg_fruit_hunger = (self.avg_fruit_hunger + self.fruit_hunger) / 2
-	#if isinstance(self.LastFood, Veggie): # the last food is different from eating food
-          #self.backForth = self.backForth + 1
-          # print self.backForth
-        #self.LastFood = Fruit(0, 0)
-      #elif isinstance(self.food, Veggie):
-        #self.veggie_hunger = 2000 if (self.veggie_hunger > 1800) else (self.veggie_hunger + 200)
-        #self.avg_veggie_hunger = (self.avg_veggie_hunger + self.veggie_hunger) / 2
-	#if isinstance(self.LastFood, Fruit):
-          #self.backForth = self.backForth + 1
-          # print self.backForth
-        #self.LastFood = Veggie(0, 0)
-      #self.food = None
-      
-  def get_hungry(self, amount):
-    self.energy -= amount
+  def get_hungry(self, action):
+    if action == Behavior.stay:
+      self.energy -= 1
+    elif action == Behavior.stalk:
+      self.energy -= 5
+    elif action == Behavior.hunt:
+      self.energy -= 10
 
   # returns a child with a genetic combination of neural net weights of 2 parents
   def mate(self, other):
-    child = Predator(0,0, random.random() * 360)
+    child = Predator(0,0)
     child.generation = min(self.generation, other.generation) + 1
     # inherit parents connection weights
     for i in range(0,len(self.net.params)):
       if random.random() > .05:
-	child.net.params[i] = random.choice([self.net.params[i], other.net.params[i]])
+         child.net.params[i] = random.choice([self.net.params[i], other.net.params[i]])
     return child
 
-# Fruits and Veggies
-class Food:
-  radius = 20
-  def __init__(self, x, y):
-    self.x = x
-    self.y = y
-    self.bites = 10
+  def applyF(self, force):
+    force /= self.mass
+    self.acc = np.add(self.acc, force)
 
-class Veggie(Food): pass
-class Fruit(Food): pass
+  '''def avoidForce(self, predators):
+    count = 0
+    locSum = [0., 0.]
+    for p in preys:
+      separation = self.mass + (20*self.mag)
+      dist = np.subtract(p.loc, self.loc)
+      d = np.linalg.norm(dist)
+      if d != 0 and d < separation:
+        locSum = np.add(locSum, p.loc)
+        count += 1
+    if count > 0:
+      locSum /= count
+      avoidVec = np.subtract(self.loc, locSum)
+      #np.linalg.norm()
+      self.applyF(avoidVec)
+  '''
+  def approachForce(self, preys):
+    count = 0
+    locSum = [0., 0.]
+    approachRadius = self.mass + 260
+    captureRadius = 3.0
+    min_dist = sys.float_info.max
+    min_idx = -1
+    #find the closest prey
+    for p in preys:
+      dist = np.subtract(p.loc, self.loc)
+      d = np.linalg.norm(dist)
+      if d <= captureRadius:
+        print d, count
+        print "Capture One Prey"
+      #if d < min_dist and d < approachRadius:
+      if d < min_dist:
+        min_idx = count
+      count+=1
+    #approach the closest prey
+    if min_idx != -1: 
+      approachVec = np.subtract(preys[min_idx].loc,  self.loc)
+      self.applyF(approachVec)
+
+  def avoidForce(self, prads):
+    count = 0
+    locSum = [0., 0.]
+    for p in prads:
+      separation = self.mass + (20*self.mag)
+      dist = np.subtract(p.loc, self.loc)
+      d = np.linalg.norm(dist)
+      if d != 0 and d < separation:
+        locSum = np.add(locSum, p.loc)
+        count += 1
+    if count > 0:
+      locSum /= count
+      avoidVec = np.subtract(self.loc, locSum)
+      #np.linalg.norm()
+      self.applyF(avoidVec)
+
+  def alignForce(self, prads):
+    count = 0
+    velSum = [0., 0.]
+    for p in prads:
+      alignRadius = self.mass + (100*self.mag)
+      dist = np.subtract(p.loc, self.loc)
+      d = np.linalg.norm(dist)
+      if d != 0 and d < alignRadius:
+        velSum = np.add(velSum, p.vel)
+        count += 1
+      if count > 0:
+        velSum /= count
+        alignVec = velSum
+        self.applyF(alignVec)
+
+  def PredForce(self, preys, prads):
+    self.approachForce(preys)
+    #self.avoidForce(prads)
+    #self.alignForce(prads)
+  def record(self):
+    #record current locations
+    return
