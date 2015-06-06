@@ -62,7 +62,7 @@ if __name__ == "__main__":
   filename = ""
   if len(sys.argv) > 1:
     filename = sys.argv[1]
-  simulation = Simulation(10, 1000, 700, filename)
+  simulation = Simulation(3, 1000, 700, filename)
   
   # main loop
   while 1: 
