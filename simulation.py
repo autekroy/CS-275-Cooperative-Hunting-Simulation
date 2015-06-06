@@ -5,7 +5,7 @@ import pygame
 import math
 
 class Simulation:
-  def __init__(self, num_preds, num_preys, width, height, saved_nets):
+  def __init__(self, generation, num_preds, num_preys, width, height, saved_nets):
     # initialize pygame
     pygame.init()
 
@@ -30,7 +30,7 @@ class Simulation:
     self.bg            = pygame.transform.scale(self.bg, (1000, 700))
     self.prey          = pygame.transform.scale(self.prey, (20, 20))
 
-    self.env = animats.Environment(num_preds, num_preys, width, height, saved_nets)
+    self.env = animats.Environment(generation, num_preds, num_preys, width, height, saved_nets)
 
   def update(self, speed):
     # update model a certain number of times
@@ -55,10 +55,12 @@ class Simulation:
 
 if __name__ == "__main__":
   # load save state from file
+  generation = 1
+
   filename = ""
   if len(sys.argv) > 1:
     filename = sys.argv[1]
-  simulation = Simulation(3, 2, 1000, 700, filename)
+  simulation = Simulation(generation, 3, 2, 1000, 700, filename)
   
   # main loop
   while 1: 
