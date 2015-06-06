@@ -5,7 +5,7 @@ import pygame
 import math
 
 class Simulation:
-  def __init__(self, num_animats, width, height, saved_nets):
+  def __init__(self, num_preds, width, height, saved_nets):
     # initialize pygame
     pygame.init()
 
@@ -22,19 +22,15 @@ class Simulation:
     self.bg = pygame.image.load("resources/bg.png")
     
     # pictures resources
-    self.animat_sprite  = pygame.image.load("resources/animat.png")
-    self.fruit          = pygame.image.load("resources/banana.png")
-    self.veggie         = pygame.image.load("resources/tomato.png")
+    self.pred_sprite    = pygame.image.load("resources/pred.png")
     self.prey           = pygame.image.load("resources/prey.png")
 
     # modify pictures to appropriate sizes
-    self.animat_sprite = pygame.transform.scale(self.animat_sprite, (32,32))
+    self.pred_sprite   = pygame.transform.scale(self.pred_sprite, (32,32))
     self.bg            = pygame.transform.scale(self.bg, (1000, 700))
-    self.fruit         = pygame.transform.scale(self.fruit, (26, 26))
-    self.veggie        = pygame.transform.scale(self.veggie, (26, 26))
     self.prey          = pygame.transform.scale(self.prey, (10, 10))
 
-    self.env = animats.Environment(num_animats, width, height, saved_nets)
+    self.env = animats.Environment(num_preds, width, height, saved_nets)
 
   def update(self, speed):
     # update model a certain number of times
@@ -52,8 +48,8 @@ class Simulation:
       self.screen.blit(self.prey, (prey.loc[0] - 5, prey.loc[1] - 5))
 
     # paint predator
-    for animat in self.env.predators:
-      self.screen.blit(pygame.transform.rotate(self.animat_sprite, 360 - animat.direction), (animat.loc[0] - animats.Predator.radius, animat.loc[1] - animats.Predator.radius))
+    for pred in self.env.predators:
+      self.screen.blit(pygame.transform.rotate(self.pred_sprite, 360 - pred.direction), (pred.loc[0] - animats.Predator.radius, pred.loc[1] - animats.Predator.radius))
 
     pygame.display.flip()
 
