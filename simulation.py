@@ -55,10 +55,12 @@ class Simulation:
 
 if __name__ == "__main__":
   # load save state from file
+  generation = 1
+
   filename = ""
   if len(sys.argv) > 1:
     filename = sys.argv[1]
-  simulation = Simulation(3, 2, 1000, 700, filename)
+  simulation = Simulation(generation, 3, 2, 1000, 700, filename)
   
   # main loop
   while 1: 

@@ -30,7 +30,7 @@ def limit(v, lim):
 
 
 class Environment:
-  def __init__(self, num_predator, num_prey, width, height, filename):
+  def __init__(self, generation, num_predator, num_prey, width, height, filename):
 
     # environment
     self.width = width
@@ -55,14 +55,14 @@ class Environment:
 
     # create prey instances in middle
     for i in range(self.num_prey):
-      pos = self.findSpace(i, 50, Predator.radius)
+      pos = self.findSpace(i, 50, 10, Predator.radius)
       p = Prey(pos[0], pos[1])
       self.preys.append(p)
 
     # create predator instances
     for i in range(self.num_predator):
       # print i
-      pos = self.findSpace(i, 200, Predator.radius)
+      pos = self.findSpace(i, 200, 20, Predator.radius)
       if len(saved_states) > 0:
         a = saved_states.pop(0)
         a.x = pos[0]
@@ -73,20 +73,20 @@ class Environment:
       self.predators.append(a)
 
   # line of sight
-  def line_of_sight(self, animat):
-    step_x = int(math.cos(animat.direction*math.pi / 180) * 10)
-    step_y = int(math.sin(animat.direction*math.pi / 180) * 10)
-    new_x = animat.loc[0] + step_x
-    new_y = animat.loc[1] + step_y
-    sees = None
-    while not sees:
-      new_x += step_x
-      new_y += step_y
-      sees = self.collision(new_x, new_y, Predator.radius, animat)
-    return sees
+  # def line_of_sight(self, animat):
+  #   step_x = int(math.cos(animat.direction*math.pi / 180) * 10)
+  #   step_y = int(math.sin(animat.direction*math.pi / 180) * 10)
+  #   new_x = animat.loc[0] + step_x
+  #   new_y = animat.loc[1] + step_y
+  #   sees = None
+  #   while not sees:
+  #     new_x += step_x
+  #     new_y += step_y
+  #     sees = self.collision(new_x, new_y, Predator.radius, animat)
+  #   return sees
 
-  def findSpace(self, count, placeRadius, AnimateRadius):
-    noCoverDegree = 20
+
+  def findSpace(self, count, placeRadius, noCoverDegree, AnimateRadius):
     degree = random.randrange(noCoverDegree , 360.0/self.num_predator - noCoverDegree)  # random degree
     degree = degree + count * 360.0/self.num_predator
     print degree
@@ -283,13 +283,14 @@ class Prey:
 # Animats     
 class Predator:
   radius = 30
-  def __init__(self, x, y):
+  def __init__(self, x, y, generation):
     #for testing
     #self.width = 1000
     #self.height = 700
     #-----------end of testing
     self.timeframe = 0
     self.age = 0 # how long does it live
+    self.generation = generation
 
     #position
     self.loc = np.array([float(x), float(y)])
