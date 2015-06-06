@@ -7,6 +7,8 @@ import numpy as np
 import sys
 
 from pybrain.structure import RecurrentNetwork, FeedForwardNetwork, LinearLayer, SigmoidLayer, FullConnection
+
+preyFleeing = 0
 Default_Engery = 100
 
 class Behavior(Enum): 
@@ -14,9 +16,22 @@ class Behavior(Enum):
     stalk  = -1
     hunt = 1
 
+def normalize(v):
+    norm = np.linalg.norm(v)
+    if norm == 0: 
+       return v
+    return v/norm
+
+def limit(v, lim):
+  norm = np.linalg.norm(v)
+  if norm == 0:
+    return v
+  return np.multiply(normalize(v), lim)
+
 
 class Environment:
   def __init__(self, num_predator, width, height, filename):
+
     # training mode (foods everywhere)
     self.training_mode = False
     # environment
@@ -40,9 +55,9 @@ class Environment:
 
     # prey
     self.preys = []
-    num_preys = 2
+    num_preys = 20
     for i in range(num_preys):
-      p = Prey(random.random() * 360, random.random() * 360)
+      p = Prey(400+random.random() * 200, 250+random.random() * 200)
       self.preys.append(p)
 
     for i in range(self.num_predator):
@@ -56,9 +71,8 @@ class Environment:
         a = Predator(pos[0], pos[1])
         a.generation = 1
       self.predators.append(a)
-  # prey
 
-  # line of sight
+   # line of sight
   def line_of_sight(self, animat):
     step_x = int(math.cos(animat.direction*math.pi / 180) * 10)
     step_y = int(math.sin(animat.direction*math.pi / 180) * 10)
@@ -98,30 +112,30 @@ class Environment:
     
     # update each prey
     for prey in self.preys:
-      prey.update(self.preys)
+      prey.update(self.preys, self.predators)
 
     # update each animat
     for animat in self.predators:
       # Sight
-      animat.sees = self.line_of_sight(animat)
+      #animat.sees = self.line_of_sight(animat)
       # Touch
-      step = 3
-      step_x = int(math.cos(animat.direction*math.pi / 180) * step)
-      step_y = int(math.sin(animat.direction*math.pi / 180) * step)
-      animat.touching = self.collision(animat.loc[0] + step_x, animat.loc[1] + step_y, Predator.radius, animat)
+      #step = 3
+      #step_x = int(math.cos(animat.direction*math.pi / 180) * step)
+      #step_y = int(math.sin(animat.direction*math.pi / 180) * step)
+      #animat.touching = self.collision(animat.loc[0] + step_x, animat.loc[1] + step_y, Predator.radius, animat)
       # Capture
-      capture = self.capture(animat.loc[0] + step_x, animat.loc[1] + step_y, Predator.radius, animat)
+      capture = self.capture(animat.loc[0] , animat.loc[1] , Predator.radius, animat)
       # update
       animat.update(self.predators, self.preys)
 
       # moviing
-      animat.loc[0] = step_x + animat.loc[0]
-      animat.loc[1] = step_y + animat.loc[1]
+      #animat.loc[0] = step_x + animat.loc[0]
+      #animat.loc[1] = step_y + animat.loc[1]
 
       # DEATH 
-      if animat not in self.deaths \
-      and (animat.energy < 0):
-	       self.deaths.append(animat)
+
+      if animat not in self.deaths and (animat.energy < 0):
+        self.deaths.append(animat)
         
 
   def collision(self, x, y, radius, without=None):
@@ -135,8 +149,8 @@ class Environment:
     if without:
       predators.remove(without)
     for animat in predators:
-        if (x - animat.loc[0])**2 + (y - animat.loc[1])**2 <= Predator.radius**2:
-	      return animat
+      if (x - animat.loc[0])**2 + (y - animat.loc[1])**2 <= Predator.radius**2:
+        return animat
     # no collision
     return None
 
@@ -188,22 +202,22 @@ class Environment:
 # prey
 class Prey:
   def __init__(self, x, y):
-    self.mag = 3
 
     self.loc = [float(x), float(y)]
-    self.vel = [10., 0.]
+    self.vel = [0., 0.]
     self.acc = [0., 0.]
-    self.maxForce = 10
-    self.mass = 12
-    self.r = self.mass / 2    
-    #for testing
-    self.width = 1000
-    self.height = 700
-    #-----------end of testing
-  def update(self, preys):
-    self.preyForce(preys)
-    self.vel = np.add(self.vel, self.acc)
-    self.loc = np.add(self.loc, self.vel)
+    self.maxForce = 3
+    self.mass = 10   
+  
+  def update(self, preys, preds):
+    self.repelForce(preds, 50)
+    if preyFleeing == 1:
+      self.preyForce(preys)
+      self.vel = np.add(self.vel, self.acc)
+      self.loc = np.add(self.loc, self.vel)      
+    else:
+      self.vel = [random.random(), random.random()]
+      self.loc = np.add(self.loc, self.vel)
     self.acc = [0., 0.]
     '''#for testing
     if self.loc[0] <= 0:
@@ -224,7 +238,7 @@ class Prey:
     count = 0
     locSum = [0., 0.]
     for p in preys:
-      separation = self.mass + (20*self.mag)
+      separation = self.mass + 20
       dist = np.subtract(p.loc, self.loc)
       d = np.linalg.norm(dist)
       if d != 0 and d < separation:
@@ -233,14 +247,14 @@ class Prey:
     if count > 0:
       locSum /= count
       avoidVec = np.subtract(self.loc, locSum)
-      #np.linalg.norm()
+      avoidVec = limit(avoidVec, self.maxForce*2.5)
       self.applyF(avoidVec)
 
   def approachForce(self, preys):
     count = 0
     locSum = [0., 0.]
     for p in preys:
-      approachRadius = self.mass + (60*self.mag)
+      approachRadius = self.mass + 60
       dist = np.subtract(p.loc, self.loc)
       d = np.linalg.norm(dist)
       if d != 0 and d < approachRadius:
@@ -249,14 +263,14 @@ class Prey:
     if count > 0:
       locSum /= count
       approachVec = np.subtract(locSum, self.loc)
-      #np.linalg.norm()
+      approachVec = limit(approachVec, self.maxForce)
       self.applyF(approachVec)
 
   def alignForce(self, preys):
     count = 0
     velSum = [0., 0.]
     for p in preys:
-      alignRadius = self.mass + (100*self.mag)
+      alignRadius = self.mass + 100
       dist = np.subtract(p.loc, self.loc)
       d = np.linalg.norm(dist)
       if d != 0 and d < alignRadius:
@@ -265,7 +279,23 @@ class Prey:
       if count > 0:
         velSum /= count
         alignVec = velSum
+        alignVec = limit(alignVec, self.maxForce)
         self.applyF(alignVec)
+
+  def repelForce(self, preds, r):
+    for pred in preds:
+      futurePos = np.add(self.loc, self.vel)
+      dist = np.subtract(pred.loc, futurePos)
+      d = np.linalg.norm(dist)
+
+      if d <= r:
+        global preyFleeing
+        if preyFleeing == 0:
+          preyFleeing = 1
+        repelVec = np.subtract(self.loc, pred.loc)
+        normalize(repelVec)
+        repelVec = np.multiply(repelVec, self.maxForce*1.1)
+        self.applyF(repelVec)
 
   def preyForce(self, preys):
     self.avoidForce(preys)
@@ -286,7 +316,7 @@ class Prey:
 
 # Animats     
 class Predator:
-  radius = 30
+  radius = 5
   def __init__(self, x, y):
     #for testing
     #self.width = 1000
@@ -298,11 +328,10 @@ class Predator:
     #position
     self.loc = [float(x), float(y)]
     # velocity
-    self.vel = [10., 0.]
-
+    self.vel = [0., 0.]
     self.acc = [0., 0.]
-    self.maxForce = 10
-    self.mass = 12
+    self.maxForce = 8
+    self.mass = 10
     self.r = self.mass / 2   
 
     #set default engery
@@ -339,7 +368,6 @@ class Predator:
       self.loc[0] = self.width
     elif self.loc[0] > self.width:
       self.loc[0] = 0
-
     if self.loc[1] <= 0:
       self.loc[1] = self.height
     elif self.loc[1] > self.height:
@@ -387,7 +415,7 @@ class Predator:
     # inherit parents connection weights
     for i in range(0,len(self.net.params)):
       if random.random() > .05:
-	       child.net.params[i] = random.choice([self.net.params[i], other.net.params[i]])
+         child.net.params[i] = random.choice([self.net.params[i], other.net.params[i]])
     return child
 
   def applyF(self, force):
@@ -397,7 +425,7 @@ class Predator:
   def approachForce(self, preys):
     count = 0
     locSum = [0., 0.]
-    approachRadius = self.mass + 260
+    approachRadius = self.mass + 1000
     captureRadius = 3.0
     min_dist = sys.float_info.max
     min_idx = -1
@@ -415,6 +443,9 @@ class Predator:
     #approach the closest prey
     if min_idx != -1: 
       approachVec = np.subtract(preys[min_idx].loc,  self.loc)
+      normalize(approachVec)
+      approachVec = np.multiply(approachVec, self.maxForce*1.1)
+      approachVec = limit(approachVec, self.maxForce*2)
       self.applyF(approachVec)
 
   def avoidForce(self, prads):
@@ -450,8 +481,8 @@ class Predator:
 
   def PredForce(self, preys, prads):
     self.approachForce(preys)
-    self.avoidForce(prads)
-    self.alignForce(prads)
+    #self.avoidForce(prads)
+    #self.alignForce(prads)
   def record(self):
     #record current locations
     return
