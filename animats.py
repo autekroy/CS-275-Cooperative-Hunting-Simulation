@@ -45,6 +45,7 @@ class Environment:
     self.filename = filename
 
     # predators
+    self.cotarget_idx = None
     self.deaths = []
     self.predators = []
     self.capturedPrey = []
@@ -53,8 +54,7 @@ class Environment:
 
     # prey
     self.preys = []
-    num_preys = 20
-    for i in range(num_preys):
+    for i in range(self.num_prey):
       p = Prey(400+random.random() * 200, 250+random.random() * 200)
       self.preys.append(p)
 
@@ -123,7 +123,8 @@ class Environment:
       #step_y = int(math.sin(animat.direction*math.pi / 180) * step)
       #animat.touching = self.collision(animat.loc[0] + step_x, animat.loc[1] + step_y, Predator.radius, animat)
       # Capture
-      capture = self.capture(pred.loc[0] , pred.loc[1] , Predator.radius, pred)
+      captured = self.capture(pred.loc[0] , pred.loc[1] , Predator.radius, pred)
+
       # update
       pred.update(self.predators, self.preys)
 
@@ -134,7 +135,40 @@ class Environment:
       # DEATH 
       if pred not in self.deaths and (pred.energy < 0):
         self.deaths.append(pred)
-        
+    
+    #update the target of predator
+    self.update_cotarget()    
+
+  def update_cotarget(self):
+    if len(self.preys) == 0:
+      self.cotarget_idx = -1
+      return
+    target_candidates = []
+    dist_sum_candidates = []
+    for pred in self.predators:
+      distSum = 0
+      idx = pred.closest_idx
+      if idx != -1:
+        for pred in self.predators:
+          dist = pred.loc - self.preys[idx].loc
+          d = np.linalg.norm(dist)
+          distSum += d
+      if distSum != 0:
+        target_candidates.append(idx)
+        dist_sum_candidates.append(distSum)
+    if len(target_candidates) == 0:
+     return
+    list_idx = np.argsort(dist_sum_candidates)
+    target_idx = list_idx[0]
+    count = 0
+    for pred in self.predators:
+      if pred.target_idx != target_idx:
+        pred.target_idx = target_idx
+        print "Predator "+ str(count) + " has new target : Prey "+str(target_idx)
+      count+=1
+    return 
+
+
 
   def collision(self, x, y, radius, without=None):
     # check wall collision
@@ -174,8 +208,9 @@ class Environment:
       captured.append(self.preys[prey_idx[i]])
     for i in range(0,len(prey_idx)):
       self.preys.remove(captured[i])
-      print "remove: " + str(i) + " prey" 
-    return None
+      print "remove: " + str(i) + " prey"
+      self.cotarget_idx = -1 
+    return captured
 
   # load animat states
   def load(self):
@@ -320,12 +355,15 @@ class Predator:
     #position
     self.loc = np.array([float(x), float(y)])
     # velocity
-
     self.vel = np.array([0., 0.])
     self.acc = np.array([0., 0.])
 
     self.maxForce = 30
     self.mass = 32 
+
+    #for finding target
+    self.target_idx = -1
+    self.closest_idx = -1
 
     #set default engery
     self.energy = Default_Engery 
@@ -418,8 +456,7 @@ class Predator:
 
   def approachForce(self, preys):
     count = 0
-
-    approachRadius = self.mass + 260
+    approachRadius = self.mass + 300
     captureRadius = 3.0
     min_dist = sys.float_info.max
     min_idx = -1
@@ -427,16 +464,22 @@ class Predator:
     for prey in preys:
       dist = prey.loc - self.loc
       d = np.linalg.norm(dist)
-      if d <= captureRadius:
-        print d, count
-        print "Capture One Prey"
+      #if d <= captureRadius:
+      #  print d, count
+      #  print "Capture One Prey"
       #if d < min_dist and d < approachRadius:
       if d < min_dist:
         min_idx = count
       count+=1
+    if min_idx != -1:
+      self.closest_idx = min_idx
+    #set it at the first time, still -1 if no prey around
+    if self.target_idx == -1:
+      self.target_idx = self.closest_idx
+
     #approach the closest prey
-    if min_idx != -1: 
-      approachVec = preys[min_idx].loc - self.loc
+    if self.target_idx != -1 and len(preys) > 0: 
+      approachVec = preys[self.target_idx].loc - self.loc
       approachVec = normalize(approachVec)
       approachVec *= self.maxForce
       self.applyF(approachVec)
