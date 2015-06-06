@@ -33,6 +33,7 @@ class Environment:
     # animats
     self.deaths = []
     self.predators = []
+    self.capturedPrey = []
     self.placeRadius = 200;
     saved_states = self.load()
 
@@ -108,6 +109,8 @@ class Environment:
       step_x = int(math.cos(animat.direction*math.pi / 180) * step)
       step_y = int(math.sin(animat.direction*math.pi / 180) * step)
       animat.touching = self.collision(animat.loc[0] + step_x, animat.loc[1] + step_y, Predator.radius, animat)
+      # Capture
+      capture = self.capture(animat.loc[0] + step_x, animat.loc[1] + step_y, Predator.radius, animat)
       # update
       animat.update(self.predators, self.preys)
 
@@ -118,7 +121,7 @@ class Environment:
       # DEATH 
       if animat not in self.deaths \
       and (animat.energy < 0):
-	self.deaths.append(animat)
+	       self.deaths.append(animat)
         
 
   def collision(self, x, y, radius, without=None):
@@ -132,9 +135,34 @@ class Environment:
     if without:
       predators.remove(without)
     for animat in predators:
-      if (x - animat.loc[0])**2 + (y - animat.loc[1])**2 <= Predator.radius**2:
-	return animat
+        if (x - animat.loc[0])**2 + (y - animat.loc[1])**2 <= Predator.radius**2:
+	      return animat
     # no collision
+    return None
+
+  def capture(self, x, y, radius, without=None):
+    # check if captured
+    if (y + radius) > self.height or (x + radius) > self.width  \
+    or (x - radius) < 0 or (y - radius) < 0:
+      return self
+    # check animat-animat collision
+    predators = list(self.predators)
+    preys = list(self.preys)
+    prey_idx = []
+    if without:
+      predators.remove(without)
+    for animat in predators:
+      count = 0
+      for prey in preys:
+        if (x - animat.loc[0])**2 + (y - animat.loc[1])**2 <= Predator.radius**2:
+          prey_idx.append(count)
+        count += 1
+    captured = []
+    for i in range(0,len(prey_idx)):
+      captured.append(self.preys[prey_idx[i]])
+    for i in range(0,len(prey_idx)):
+      self.preys.remove(captured[i])
+      print "remove: " + str(i) + " prey" 
     return None
 
   # load animat states
@@ -366,22 +394,6 @@ class Predator:
     force /= self.mass
     self.acc = np.add(self.acc, force)
 
-  '''def avoidForce(self, predators):
-    count = 0
-    locSum = [0., 0.]
-    for p in preys:
-      separation = self.mass + (20*self.mag)
-      dist = np.subtract(p.loc, self.loc)
-      d = np.linalg.norm(dist)
-      if d != 0 and d < separation:
-        locSum = np.add(locSum, p.loc)
-        count += 1
-    if count > 0:
-      locSum /= count
-      avoidVec = np.subtract(self.loc, locSum)
-      #np.linalg.norm()
-      self.applyF(avoidVec)
-  '''
   def approachForce(self, preys):
     count = 0
     locSum = [0., 0.]
@@ -438,8 +450,8 @@ class Predator:
 
   def PredForce(self, preys, prads):
     self.approachForce(preys)
-    #self.avoidForce(prads)
-    #self.alignForce(prads)
+    self.avoidForce(prads)
+    self.alignForce(prads)
   def record(self):
     #record current locations
     return
