@@ -6,13 +6,12 @@ from enum import Enum
 import numpy as np
 
 from pybrain.structure import RecurrentNetwork, FeedForwardNetwork, LinearLayer, SigmoidLayer, FullConnection
-Default_Engery = 50000
+Default_Engery = 100
 
 class Behavior(Enum): 
     stay = 0
-    stalk  = 1
-    hunt = 2
-
+    stalk  = -1
+    hunt = 1
 
 
 class Environment:
@@ -27,10 +26,7 @@ class Environment:
     self.moveLog = []
     # save state
     self.filename = filename
-    # foods
-    self.num_foods = num_predator
-    self.foods = []
-    # self.produceFoods
+
     # animats
     self.num_predator = 3
     self.deaths = []
@@ -84,19 +80,20 @@ class Environment:
   def update(self):
     # if an animat died, the two fittest predators mate
     while len(self.deaths) > 0: 
-      fittest = sorted(self.predators, key=lambda a: -a.avg_fruit_hunger -a.avg_veggie_hunger)
-      pos = self.findSpace(predator.radius, (0, self.height))
+      fittest = sorted(self.predators, key=lambda a: -a.energy)
+      pos = self.findSpace(Predator.radius, (0, self.height))
       child = fittest[0].mate(fittest[1])
       child.x = pos[0]
       child.y = pos[1]
       self.predators.append(child)
+      
       # log dead predators stats
-      tmpLog = (self.deaths[0].generation, self.deaths[0].age )
-      self.log.append( tmpLog )
-      tmpMoveLog = (self.deaths[0].generation, self.deaths[0].backForth)
-      print str(tmpLog) + "   " + str(tmpMoveLog)
-      self.moveLog.append( tmpMoveLog )
-      self.predators.remove(self.deaths.pop(0))
+      # tmpLog = (self.deaths[0].generation, self.deaths[0].age )
+      # self.log.append( tmpLog )
+      # tmpMoveLog = (self.deaths[0].generation, self.deaths[0].backForth)
+      # print str(tmpLog) + "   " + str(tmpMoveLog)
+      # self.moveLog.append( tmpMoveLog )
+      # self.predators.remove(self.deaths.pop(0))
     
     # update each prey
     for prey in self.preys:
@@ -113,27 +110,11 @@ class Environment:
       animat.touching = self.collision(animat.loc[0] + step_x, animat.loc[1] + step_y, Predator.radius, animat)
       # update
       animat.update()
+
+      # moviing
       animat.loc[0] = step_x + animat.loc[0]
       animat.loc[1] = step_y + animat.loc[1]
-      # moving
- #      if animat.wants_to_move and \
-	# (not animat.touching or isinstance(animat.touching,Food)):
-	# animat.x = step_x + animat.x
-	# animat.y = step_y + animat.y
 
-      # pickup
- #      if isinstance(animat.touching, Food) and animat.wants_to_pickup:
-	# self.foods.remove(animat.touching)
- #        animat.food = animat.touching
- #      # putdown
- #      if animat.wants_to_putdown:
-	# if isinstance(animat.food, Fruit):
-	#   self.foods.append(Fruit(animat.x - (step_x*10), animat.y - (step_y*10)))
-	# elif isinstance(animat.food, Veggie):
-	#   self.foods.append(Veggie(animat.x - (step_x*10), animat.y - (step_y*10)))
-	# animat.food = None
-      # keep the food supply constant
-      # self.produceFoods()
       # DEATH 
       if animat not in self.deaths \
       and (animat.energy < 0):
@@ -145,10 +126,7 @@ class Environment:
     if (y + radius) > self.height or (x + radius) > self.width  \
     or (x - radius) < 0 or (y - radius) < 0:
       return self
-    # check food collision
-    for food in self.foods:
-      if (x - food.x)**2 + (y - food.y)**2 <= Food.radius**2:
-	return food
+
     # check animat-animat collision
     predators = list(self.predators)
     if without:
@@ -270,7 +248,8 @@ class Predator:
   radius = 30
 
   def __init__(self, x, y):
-    
+    self.age = 0 # how long does it live
+
     self.mag = 3
 
     #position
@@ -287,7 +266,6 @@ class Predator:
 
     #set default engery
     self.energy = Default_Engery
-
     self.targetPrey = None
 
 
@@ -299,8 +277,8 @@ class Predator:
 
     self.behavior = Behavior.stay
 
+
     # neural net
-    
     self.net = FeedForwardNetwork()
     self.net.addInputModule(LinearLayer(9, name='in'))
     self.net.addModule(SigmoidLayer(9, name='hidden'))
@@ -311,10 +289,7 @@ class Predator:
 
     # thresholds for deciding an action
     self.move_threshold = 0
-    #self.pickup_threshold = 0
-    #self.putdown_threshold = 0
-    #self.eat_threshold = 0
-    
+
   def update(self):
 
     ''' self is lion 0
@@ -334,8 +309,8 @@ class Predator:
       )
     '''decision = self.net.activate(sensors)'''
     # get a little hungry no matter what
-    #self.age += 1
-    self.get_hungry(.5)
+    self.age += 1
+    self.get_hungry(self.behavior)
     # move forward
     #self.wants_to_move = (decision[0] > self.move_threshold)
     # rotate left 
@@ -343,50 +318,20 @@ class Predator:
     # rotate right 
     #self.direction += decision[2]
 
-    # pickup
-    #self.wants_to_pickup = ((decision[3] > self.pickup_threshold) 
-			    #and not self.food)
-    # putdown
-    #self.wants_to_putdown = ((decision[4] > self.putdown_threshold)
-			     #and self.food)
-    # eat
-    #if (decision[5] > self.eat_threshold) and self.food:
-      #if isinstance(self.food, Fruit):
-	#self.fruit_hunger = 2000 if (self.fruit_hunger > 1800) else (self.fruit_hunger + 200)
-        #self.avg_fruit_hunger = (self.avg_fruit_hunger + self.fruit_hunger) / 2
-	#if isinstance(self.LastFood, Veggie): # the last food is different from eating food
-          #self.backForth = self.backForth + 1
-          # print self.backForth
-        #self.LastFood = Fruit(0, 0)
-      #elif isinstance(self.food, Veggie):
-        #self.veggie_hunger = 2000 if (self.veggie_hunger > 1800) else (self.veggie_hunger + 200)
-        #self.avg_veggie_hunger = (self.avg_veggie_hunger + self.veggie_hunger) / 2
-	#if isinstance(self.LastFood, Fruit):
-          #self.backForth = self.backForth + 1
-          # print self.backForth
-        #self.LastFood = Veggie(0, 0)
-      #self.food = None
-      
-  def get_hungry(self, amount):
-    self.energy -= amount
+  def get_hungry(self, action):
+    if action == Behavior.stay:
+      self.energy -= 1
+    elif action == Behavior.stalk:
+      self.energy -= 5
+    elif action == Behavior.hunt:
+      self.energy -= 10
 
   # returns a child with a genetic combination of neural net weights of 2 parents
   def mate(self, other):
-    child = Predator(0,0, random.random() * 360)
+    child = Predator(0,0)
     child.generation = min(self.generation, other.generation) + 1
     # inherit parents connection weights
     for i in range(0,len(self.net.params)):
       if random.random() > .05:
 	child.net.params[i] = random.choice([self.net.params[i], other.net.params[i]])
     return child
-
-# Fruits and Veggies
-class Food:
-  radius = 20
-  def __init__(self, x, y):
-    self.x = x
-    self.y = y
-    self.bites = 10
-
-class Veggie(Food): pass
-class Fruit(Food): pass
