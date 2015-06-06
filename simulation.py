@@ -49,11 +49,31 @@ class Simulation:
 
     # paint prey
     for prey in self.env.preys:
-      self.screen.blit(self.prey, (prey.loc[0], prey.loc[1]))
+      self.screen.blit(self.prey, (prey.loc[0] + 5, prey.loc[1] + 5))
 
-    # paint predator
-    for animat in self.env.predators:
-      self.screen.blit(pygame.transform.rotate(self.animat_sprite, 360 - animat.direction), (animat.loc[0] - animats.Predator.radius, animat.loc[1] - animats.Predator.radius))
+    # paint food
+    for food in self.env.foods:
+	if isinstance(food, animats.Fruit):
+	  self.screen.blit(self.fruit, \
+			   (food.x - animats.Food.radius, \
+			    food.y - animats.Food.radius))
+	else:
+	  self.screen.blit(self.veggie, \
+			   (food.x - animats.Food.radius, \
+			    food.y - animats.Food.radius))
+
+    # paint animats
+    for animat in self.env.animats:
+      self.screen.blit(pygame.transform.rotate(self.animat_sprite, 360 - animat.direction), (animat.x - animats.Animat.radius, animat.y - animats.Animat.radius))
+      if animat.food:
+	if isinstance(animat.food, animats.Fruit):
+	  self.screen.blit(self.fruit, \
+			   (animat.x - animats.Animat.radius, \
+			    animat.y - animats.Animat.radius))
+	elif isinstance(animat.food, animats.Veggie):
+	  self.screen.blit(self.veggie, \
+			   (animat.x - animats.Animat.radius, \
+			    animat.y - animats.Animat.radius))
 
     pygame.display.flip()
 
