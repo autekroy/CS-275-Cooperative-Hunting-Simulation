@@ -26,9 +26,9 @@ class Simulation:
     self.prey           = pygame.image.load("resources/prey.png")
 
     # modify pictures to appropriate sizes
-    self.pred_sprite   = pygame.transform.scale(self.pred_sprite, (32,32))
+    self.pred_sprite   = pygame.transform.scale(self.pred_sprite, (20,20))
     self.bg            = pygame.transform.scale(self.bg, (1000, 700))
-    self.prey          = pygame.transform.scale(self.prey, (10, 10))
+    self.prey          = pygame.transform.scale(self.prey, (20, 20))
 
     self.env = animats.Environment(num_preds, num_preys, width, height, saved_nets)
 
@@ -45,7 +45,7 @@ class Simulation:
 
     # paint prey
     for prey in self.env.preys:
-      self.screen.blit(self.prey, (prey.loc[0] - 5, prey.loc[1] - 5))
+      self.screen.blit(self.prey, (prey.loc[0] - 10, prey.loc[1] - 10))
 
     # paint predator
     for pred in self.env.predators:

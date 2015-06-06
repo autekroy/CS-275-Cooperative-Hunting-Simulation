@@ -45,13 +45,14 @@ class Environment:
     self.filename = filename
 
     # predators
-    self.deaths = []
+    self.pred_deaths = []
     self.predators = []
     self.placeRadius = 200;
     saved_states = self.load()
 
     # prey
     self.preys = []
+    self.prey_deaths = []
 
     # create prey instances in middle
     for i in range(self.num_prey):
@@ -105,9 +106,13 @@ class Environment:
 
   def update(self):
     # if an animat died, the two fittest predators mate
-    while len(self.deaths) > 0:
-      self.predators.remove(self.deaths.pop(0))
+    while len(self.pred_deaths ) > 0:
+      self.predators.remove(self.pred_deaths.pop(0))
       print "die"
+
+    while len(self.prey_deaths ) > 0:
+      self.preys.remove(self.prey_deaths.pop(0))
+      print "capture Prey"
     
     # update each prey
     for prey in self.preys:
@@ -129,9 +134,14 @@ class Environment:
       #pred.loc[0] = step_x + pred.loc[0]
       #pred.loc[1] = step_y + pred.loc[1]
 
+      # CAPTURE
+      deadPrey = pred.capturePrey(self.preys)
+      if (deadPrey != None) and (deadPrey not in self.prey_deaths):
+        self.prey_deaths.append(deadPrey)
+
       # DEATH 
-      if pred not in self.deaths and (pred.energy < 0):
-        self.deaths.append(pred)
+      if pred not in self.pred_deaths and (pred.energy < 0):
+        self.pred_deaths.append(pred)
         
 
   def collision(self, x, y, radius, without=None):
@@ -179,7 +189,7 @@ class Prey:
     self.acc = np.array([0., 0.])
     self.maxForce = 3
     self.mass = 10 
-    self.repelRadius = 50  
+    self.repelRadius = 100  
   
   def update(self, preys, preds):
     self.repelForce(preds, self.repelRadius)
@@ -272,6 +282,8 @@ class Prey:
         repelVec = self.loc - pred.loc
         repelVec = normalize(repelVec)
         repelVec *= (self.maxForce * 5)
+        if d != 0:
+          repelVec /= d*0.01
         self.applyF(repelVec)
 
   def preyFleeForce(self, preys):
@@ -281,7 +293,7 @@ class Prey:
 
 # Animats     
 class Predator:
-  radius = 30
+  radius = 10
   def __init__(self, x, y):
     #for testing
     #self.width = 1000
@@ -298,6 +310,7 @@ class Predator:
 
     self.maxForce = 30
     self.mass = 32 
+    self.captureRadius = 10
 
     #set default engery
     self.energy = Default_Engery 
@@ -407,16 +420,16 @@ class Predator:
   def approachForce(self, preys):
     count = 0
     approachRadius = self.mass + 260
-    captureRadius = 3.0
+#    captureRadius = 3.0
     min_dist = sys.float_info.max
     min_idx = -1
     #find the closest prey
     for prey in preys:
       dist = prey.loc - self.loc
       d = np.linalg.norm(dist)
-      if d <= captureRadius:
-        print d, count
-        print "Capture One Prey"
+#      if d <= captureRadius:
+#        print d, count
+#        print "Capture One Prey"
       #if d < min_dist and d < approachRadius:
       if d < min_dist:
         min_idx = count
@@ -425,7 +438,7 @@ class Predator:
     if min_idx != -1: 
       approachVec = preys[min_idx].loc - self.loc
       approachVec = normalize(approachVec)
-      approachVec *= self.maxForce
+      approachVec *= self.maxForce*2
       self.applyF(approachVec)
 
   def avoidForce(self, preds):
@@ -443,6 +456,35 @@ class Predator:
       avoidVec = self.loc - locSum
       avoidVec = limit(avoidVec, self.maxForce)
       self.applyF(avoidVec)
+
+  def capturePrey(self, preys):
+    futurePos = self.loc + self.vel
+    x = self.loc[0]
+    y = self.loc[1]
+    futureX = futurePos[0]
+    futureY = futurePos[1]
+
+    if x >= futureX:
+      x += self.captureRadius
+      futureX -= self.captureRadius
+    else:
+      x -= self.captureRadius
+      futureX += self.captureRadius  
+
+    if y >= futureY:
+      y += self.captureRadius
+      futureY -= self.captureRadius
+    else:
+      y -= self.captureRadius
+      futureY += self.captureRadius    
+
+    for prey in preys:
+      preyX = prey.loc[0]
+      preyY = prey.loc[1] 
+      if (x <= preyX and futureX >= preyX) or (x >= preyX and futureX <= preyX):
+        if (y <= preyY and futureY >= preyY) or (y >= preyY and futureY <= preyY):
+          return prey
+    return None
 
   def PredForce(self, preys, prads):
     self.approachForce(preys)
