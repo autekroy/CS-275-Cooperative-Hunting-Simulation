@@ -49,31 +49,11 @@ class Simulation:
 
     # paint prey
     for prey in self.env.preys:
-      self.screen.blit(self.prey, (prey.loc[0] + 5, prey.loc[1] + 5))
+      self.screen.blit(self.prey, (prey.loc[0] - 5, prey.loc[1] - 5))
 
-    # paint food
-    for food in self.env.foods:
-	if isinstance(food, animats.Fruit):
-	  self.screen.blit(self.fruit, \
-			   (food.x - animats.Food.radius, \
-			    food.y - animats.Food.radius))
-	else:
-	  self.screen.blit(self.veggie, \
-			   (food.x - animats.Food.radius, \
-			    food.y - animats.Food.radius))
-
-    # paint animats
-    for animat in self.env.animats:
-      self.screen.blit(pygame.transform.rotate(self.animat_sprite, 360 - animat.direction), (animat.x - animats.Animat.radius, animat.y - animats.Animat.radius))
-      if animat.food:
-	if isinstance(animat.food, animats.Fruit):
-	  self.screen.blit(self.fruit, \
-			   (animat.x - animats.Animat.radius, \
-			    animat.y - animats.Animat.radius))
-	elif isinstance(animat.food, animats.Veggie):
-	  self.screen.blit(self.veggie, \
-			   (animat.x - animats.Animat.radius, \
-			    animat.y - animats.Animat.radius))
+    # paint predator
+    for animat in self.env.predators:
+      self.screen.blit(pygame.transform.rotate(self.animat_sprite, 360 - animat.direction), (animat.loc[0] - animats.Predator.radius, animat.loc[1] - animats.Predator.radius))
 
     pygame.display.flip()
 
@@ -82,17 +62,17 @@ if __name__ == "__main__":
   filename = ""
   if len(sys.argv) > 1:
     filename = sys.argv[1]
-  simulation = Simulation(10, 1000, 700, filename)
+  simulation = Simulation(3, 1000, 700, filename)
   
   # main loop
   while 1: 
     for event in pygame.event.get():
       # check for exit
       if event.type == pygame.QUIT: 
-	simulation.env.save()
-	# save record log
-	fLog = open("log.txt",'w')
-	map(lambda r: fLog.write( str(r) + '\n'), simulation.env.log)
-	fLog.close()
+        simulation.env.save()
+        # save record log
+        fLog = open("log.txt",'w')
+        map(lambda r: fLog.write( str(r) + '\n'), simulation.env.log)
+        fLog.close()
         sys.exit()
     simulation.update(1)
