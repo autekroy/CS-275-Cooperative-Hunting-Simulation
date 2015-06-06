@@ -32,7 +32,7 @@ class Simulation:
     self.bg            = pygame.transform.scale(self.bg, (1000, 700))
     self.fruit         = pygame.transform.scale(self.fruit, (26, 26))
     self.veggie        = pygame.transform.scale(self.veggie, (26, 26))
-    self.prey          = pygame.transform.scale(self.prey, (25, 25))
+    self.prey          = pygame.transform.scale(self.prey, (10, 10))
 
     self.env = animats.Environment(num_animats, width, height, saved_nets)
 
