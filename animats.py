@@ -22,6 +22,8 @@ class Environment:
     # environment
     self.width = width
     self.height = height
+    # print self.width/2, self.height/2
+    self.num_predator = num_predator
     # record log
     self.log = []
     self.moveLog = []
@@ -29,9 +31,9 @@ class Environment:
     self.filename = filename
 
     # animats
-    self.num_predator = 3
     self.deaths = []
     self.predators = []
+    self.placeRadius = 200;
     saved_states = self.load()
 
 
@@ -42,8 +44,9 @@ class Environment:
       p = Prey(random.random() * 360, random.random() * 360)
       self.preys.append(p)
 
-    while len(self.predators) < num_predator:
-      pos = self.findSpace(Predator.radius, (0, self.height))
+    for i in range(self.num_predator):
+      # print i
+      pos = self.findSpace(i, self.placeRadius, Predator.radius)
       if len(saved_states) > 0:
         a = saved_states.pop(0)
         a.x = pos[0]
@@ -67,34 +70,30 @@ class Environment:
       sees = self.collision(new_x, new_y, Predator.radius, animat)
     return sees
 
-  def findSpace(self, radius, bounds):
-    spawns_x = range(0, self.width, 10)
-    spawns_y = range(bounds[0], bounds[1], 10)
-    random.shuffle(spawns_x)
-    random.shuffle(spawns_y)
-    for x in spawns_x:
-      for y in spawns_y:
-	if not self.collision(x, y, radius):
-	  return (x, y)
+  def findSpace(self, count, placeRadius, AnimateRadius):
+    noCoverDegree = 20
+    degree = random.randrange(noCoverDegree , 360.0/self.num_predator - noCoverDegree)  # random degree
+    degree = degree + count * 360.0/self.num_predator
+    print degree
+    degree = math.radians(degree) #Convert angle from degrees to radians.
+    radius = random.randrange(placeRadius, placeRadius + 20)
+    x = math.cos(degree) * radius
+    y = math.sin(degree) * radius
+
+    centerX = self.width / 2
+    centerY = self.height /2
+    # print math.cos(math.radians(360)), math.sin(math.radians(270))
+    # print centerX, centerY, x, y, degree
+    x = centerX + x
+    y = centerY + y
+    return (x, y)
 
 
   def update(self):
     # if an animat died, the two fittest predators mate
-    while len(self.deaths) > 0: 
-      fittest = sorted(self.predators, key=lambda a: -a.energy)
-      pos = self.findSpace(Predator.radius, (0, self.height))
-      child = fittest[0].mate(fittest[1])
-      child.x = pos[0]
-      child.y = pos[1]
-      self.predators.append(child)
-      
-      # log dead predators stats
-      # tmpLog = (self.deaths[0].generation, self.deaths[0].age )
-      # self.log.append( tmpLog )
-      # tmpMoveLog = (self.deaths[0].generation, self.deaths[0].backForth)
-      # print str(tmpLog) + "   " + str(tmpMoveLog)
-      # self.moveLog.append( tmpMoveLog )
-      # self.predators.remove(self.deaths.pop(0))
+    while len(self.deaths) > 0:
+      self.predators.remove(self.deaths.pop(0))
+      print "die"
     
     # update each prey
     for prey in self.preys:
@@ -279,7 +278,7 @@ class Predator:
     self.r = self.mass / 2   
 
     #set default engery
-    self.energy = Default_Engery
+    self.energy = Default_Engery 
     self.targetPrey = None
 
     #set orientation range in (0 - 359 degrees)
