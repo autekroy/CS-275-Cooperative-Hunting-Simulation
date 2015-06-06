@@ -47,7 +47,7 @@ class Environment:
     # predators
     self.deaths = []
     self.predators = []
-    self.placeRadius = 200;
+    # self.placeRadius = 200;
     saved_states = self.load()
 
     # prey
@@ -55,13 +55,14 @@ class Environment:
 
     # create prey instances in middle
     for i in range(self.num_prey):
-      p = Prey(400+random.random() * 200, 250+random.random() * 200)
+      pos = self.findSpace(i, 50, Predator.radius)
+      p = Prey(pos[0], pos[1])
       self.preys.append(p)
 
     # create predator instances
     for i in range(self.num_predator):
       # print i
-      pos = self.findSpace(i, self.placeRadius, Predator.radius)
+      pos = self.findSpace(i, 200, Predator.radius)
       if len(saved_states) > 0:
         a = saved_states.pop(0)
         a.x = pos[0]
@@ -340,32 +341,17 @@ class Predator:
     if self.timeframe%5 == 0:
       self.record()
     '''
-    ''' self is lion 0
-     lion 1 position - self position
-     lion 2 position - self position
-     zibra 1 position - self position
-     zibra 2 position - self postion
-     self Behavior
-     lion 1 Behavior
-     lion 2 Behavior
-     zibra 1 behavior
-     zibra 2 behavior
-    '''
+
 
     sensors = ()
     '''decision = self.net.activate(sensors)'''
-    # get a little hungry no matter what
+    # consume energy based on differnt current behavior
     self.age += 1
-    self.get_hungry(self.behavior)
+    self.consumeEnergy(self.behavior)
     self.timeframe += 1
-    # move forward
-    #self.wants_to_move = (decision[0] > self.move_threshold)
-    # rotate left 
-    #self.direction -= decision[1]
-    # rotate right 
-    #self.direction += decision[2]
 
-  def get_hungry(self, action):
+
+  def consumeEnergy(self, action):
     if action == Behavior.stay:
       self.energy -= 1
     elif action == Behavior.stalk:
