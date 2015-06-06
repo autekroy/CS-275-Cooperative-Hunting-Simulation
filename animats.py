@@ -16,7 +16,7 @@ class Behavior(Enum):
 
 
 class Environment:
-  def __init__(self, num_animats, width, height, filename):
+  def __init__(self, num_predator, width, height, filename):
     # training mode (foods everywhere)
     self.training_mode = False
     # environment
@@ -28,13 +28,13 @@ class Environment:
     # save state
     self.filename = filename
     # foods
-    self.num_foods = num_animats
+    self.num_foods = num_predator
     self.foods = []
     # self.produceFoods
     # animats
-    self.num_animats = 3
+    self.num_predator = 3
     self.deaths = []
-    self.animats = []
+    self.predators = []
     saved_states = self.load()
 
 
@@ -45,7 +45,7 @@ class Environment:
       p = Prey(random.random() * 360, random.random() * 360)
       self.preys.append(p)
 
-    while len(self.animats) < num_animats:
+    while len(self.predators) < num_predator:
       pos = self.findSpace(Predator.radius, (0, self.height))
       if len(saved_states) > 0:
         a = saved_states.pop(0)
@@ -54,7 +54,7 @@ class Environment:
       else:
         a = Predator(pos[0], pos[1])
         a.generation = 1
-      self.animats.append(a)
+      self.predators.append(a)
   # prey
 
   # line of sight
@@ -82,28 +82,28 @@ class Environment:
 
 
   def update(self):
-    # if an animat died, the two fittest animats mate
+    # if an animat died, the two fittest predators mate
     while len(self.deaths) > 0: 
-      fittest = sorted(self.animats, key=lambda a: -a.avg_fruit_hunger -a.avg_veggie_hunger)
+      fittest = sorted(self.predators, key=lambda a: -a.avg_fruit_hunger -a.avg_veggie_hunger)
       pos = self.findSpace(predator.radius, (0, self.height))
       child = fittest[0].mate(fittest[1])
       child.x = pos[0]
       child.y = pos[1]
-      self.animats.append(child)
-      # log dead animats stats
+      self.predators.append(child)
+      # log dead predators stats
       tmpLog = (self.deaths[0].generation, self.deaths[0].age )
       self.log.append( tmpLog )
       tmpMoveLog = (self.deaths[0].generation, self.deaths[0].backForth)
       print str(tmpLog) + "   " + str(tmpMoveLog)
       self.moveLog.append( tmpMoveLog )
-      self.animats.remove(self.deaths.pop(0))
+      self.predators.remove(self.deaths.pop(0))
     
     # update each prey
     for prey in self.preys:
       prey.update(self.preys)
 
     # update each animat
-    for animat in self.animats:
+    for animat in self.predators:
       # Sight
       animat.sees = self.line_of_sight(animat)
       # Touch
@@ -150,10 +150,10 @@ class Environment:
       if (x - food.x)**2 + (y - food.y)**2 <= Food.radius**2:
 	return food
     # check animat-animat collision
-    animats = list(self.animats)
+    predators = list(self.predators)
     if without:
-      animats.remove(without)
-    for animat in animats:
+      predators.remove(without)
+    for animat in predators:
       if (x - animat.loc[0])**2 + (y - animat.loc[1])**2 <= Predator.radius**2:
 	return animat
     # no collision
@@ -165,9 +165,9 @@ class Environment:
       return []
     try:
       f = open(self.filename, 'r')
-      animats = pickle.load(f)
+      predators = pickle.load(f)
       f.close()
-      return animats
+      return predators
     except:
       print "Could not load file " + self.filename
       return []
@@ -176,7 +176,7 @@ class Environment:
   def save(self):
     if self.filename != "":
       f = open(self.filename, 'w')
-      pickle.dump(self.animats, f)
+      pickle.dump(self.predators, f)
       f.close()
 
 # prey
