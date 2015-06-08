@@ -37,7 +37,7 @@ class NNW:
       decision = self.net.activate(inputData)
       return decision
 
-  def parameter(laynumber = 0):
+  def parameter(self, laynumber):
     if laynumber == 0:
           return slef.net.params
     elif laynumber == 1:
