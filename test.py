@@ -20,9 +20,9 @@ ds['target']
 net = FeedForwardNetwork()
 
 
-inLayer = LinearLayer(3, name='in')
+inLayer = LinearLayer(2, name='in')
 hiddenLayer1 = SigmoidLayer(4, name='hidden1')
-outLayer = LinearLayer(2, name='out')
+outLayer = LinearLayer(1, name='out')
 
 net.addInputModule(inLayer)
 net.addModule(hiddenLayer1)

@@ -35,7 +35,7 @@ class NNW:
 
     def activate(self, inputData):
       # self.net.sortModules()
-      decision = self.net.activate(inputDaa)
+      decision = self.net.activate(inputData)
       return decision
 
     def parameter(laynumber = 0):
