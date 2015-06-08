@@ -6,7 +6,8 @@ from pybrain.supervised.trainers import BackpropTrainer
 # http://pybrain.org/docs/quickstart/dataset.html?highlight=neural%20network
 from pybrain.datasets import ClassificationDataSet
 from pybrain.datasets import SupervisedDataSet
-ds = ClassificationDataSet(2, 1)
+
+ds = SupervisedDataSet(2, 1)
 ds.addSample((0, 0), (0,))
 ds.addSample((0, 1), (1,))
 ds.addSample((1, 0), (1,))

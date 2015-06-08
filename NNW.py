@@ -3,24 +3,46 @@ from pybrain.tools.shortcuts import buildNetwork
 from pybrain.structure import RecurrentNetwork, FeedForwardNetwork, LinearLayer, SigmoidLayer, FullConnection
 from pybrain.supervised.trainers import BackpropTrainer
 
+# http://pybrain.org/docs/quickstart/dataset.html?highlight=neural%20network
+from pybrain.datasets import ClassificationDataSet
+from pybrain.datasets import SupervisedDataSet
 
 class NNW:
 	def __init__(self, num_input, num_hidden, num_output):
       # self.net = buildNetwork(num_input, num_hidden, num_output, bias = True)
       self.net = FeedForwardNetwork()
-      
-      self.net.addInputModule(LinearLayer(num_input, name='in'))
-      self.net.addModule(SigmoidLayer(num_hidden, name='hidden'))
-      self.net.addOutputModule(LinearLayer(num_output, name='out'))
 
-      in_to_hidden = FullConnection(inLayer, hiddenLayer)
-      hidden_to_out = FullConnection(hiddenLayer, outLayer)
-      
-      self.net.addConnection(FullConnection(self.net['in'], self.net['hidden']))
-      self.net.addConnection(FullConnection(self.net['hidden'], self.net['out']))
+      inLayer = LinearLayer(num_input, name='in')
+      hiddenLayer1 = SigmoidLayer(num_hidden, name='hidden1')
+      outLayer = LinearLayer(num_output, name='out')
+
+      net.addInputModule(inLayer)
+      net.addModule(hiddenLayer1)
+      net.addOutputModule(outLayer)
+
+      self.in_to_hidden = FullConnection(inLayer, hiddenLayer1)
+      self.hidden_to_out = FullConnection(hiddenLayer1, outLayer)
+
+      self.net.addConnection(in_to_hidden)
+      self.net.addConnection(hidden_to_out)
+
       self.net.sortModules()
+
+      # len(self.net.params)
+      # len(in_to_hidden.params)
+      # len(hidden_to_out.params)
+
 
     def activate(self, inputData):
       # self.net.sortModules()
       decision = self.net.activate(inputDaa)
       return decision
+
+    def parameter(laynumber = 0):
+    	if laynumber == 0:
+          return slef.net.params
+        elif laynumber = 1:
+          return self.in_to_hidden.params
+        elif laynumber = 2:
+          return self.hidden_to_out.params
+
