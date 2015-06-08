@@ -21,7 +21,7 @@ net = FeedForwardNetwork()
 
 
 inLayer = LinearLayer(2, name='in')
-hiddenLayer1 = SigmoidLayer(4, name='hidden1')
+hiddenLayer1 = SigmoidLayer(3, name='hidden1')
 outLayer = LinearLayer(1, name='out')
 
 net.addInputModule(inLayer)
@@ -44,8 +44,9 @@ len(net.params)
 len(in_to_hidden.params)
 len(hidden_to_out.params)
 
-inputData = [1, 2, 1.5]
+inputData = [1, 0]
 net.activate(inputData)
+net.activate([1,0])
 print net.params
 
 # http://pybrain.org/docs/api/supervised/trainers.html?highlight=backproptrainer#pybrain.supervised.trainers.BackpropTrainer
@@ -55,7 +56,10 @@ print net.params
 # 2. learningrate: 0.01 ~ 0.25
 # 3. batchlearning: True or False
 
-trainer = BackpropTrainer(net, ds)
+# check the dimension is same
+ds.indim == network.indim
+
+trainer = BackpropTrainer(net, ds, learningrate = 0.1, batchlearning=True)
 
 # training
 # train() Train the associated module for one epoch.
