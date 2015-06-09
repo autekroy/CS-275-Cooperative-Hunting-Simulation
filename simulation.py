@@ -52,7 +52,7 @@ class Simulation:
 
     # paint predator
     for pred in self.env.predators:
-      self.screen.blit(pygame.transform.rotate(self.pred_sprite, 360), (pred.loc[0] - animats.Predator.radius, pred.loc[1] - animats.Predator.radius))
+      self.screen.blit(pygame.transform.rotate(self.pred_sprite, 360), (pred.loc[0] - pred.radius, pred.loc[1] - pred.radius))
 
     pygame.display.flip()
 
