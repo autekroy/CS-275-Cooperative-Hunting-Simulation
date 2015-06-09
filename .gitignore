@@ -7,5 +7,12 @@
 !*.md
 !*.png
 
+!*.html
+!*.pptx
+!*.ppt
+!*.pdf
+!*.docx
+
 # sub-directories
 !*/
+

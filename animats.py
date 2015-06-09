@@ -153,6 +153,19 @@ class Environment:
     n_dir_top = n_dir_idx_list[::-1][0]
     info.append(n_dir_top)
     return info
+  def filt_with_threshold(self, l1, l2, ans):
+    for i in range(0, self.num_predator):
+      for j in range(0,len(l1)/self.num_predator):
+        if j == ans[i][0]:
+          l1[i*3+j] = 1
+        else:
+          l1[i*3+j] = 0
+      for j in range(0,len(l2)/self.num_predator):
+        if j == ans[i][1]:
+          l2[i*8+j] = 1
+        else:
+          l2[i*8+j] = 0
+    return l1,l2
 
   def update(self):
     # if an animat died, the two fittest predators mate
@@ -176,6 +189,7 @@ class Environment:
 
     count = 0
     # update each predator
+    cur_res = []
     for pred in self.predators:
       update_info = self.extract_info_from_nnlist(nn_out_speed[count*3:count*3+3],nn_out_dir[count*8:count*8+8])
 
@@ -192,16 +206,18 @@ class Environment:
       if pred not in self.pred_deaths and (pred.energy < 0):
         self.pred_deaths.append(pred)
       count += 1
+      cur_res.append(update_info)
  
     #update the target of predator
     if len(self.pred_deaths) > 0 or len(self.prey_deaths) > 0:
       self.halt = 1
-      
+      nn_out_speed, nn_out_dir = self.filt_with_threshold(nn_out_speed,nn_out_dir,cur_res)
       r_list = list(input_vals) + list(nn_out_speed) + list(nn_out_dir)
       self.record(r_list)
       self.file_fp.close()
       return
 
+    nn_out_speed, nn_out_dir = self.filt_with_threshold(nn_out_speed,nn_out_dir,cur_res)
     r_list = list(input_vals) + list(nn_out_speed) + list(nn_out_dir)
     self.update_cotarget()
     self.timeframe += 1
@@ -209,7 +225,12 @@ class Environment:
       self.record(r_list)
       self.timeframe = 0  
 
+  # The fullowing function record input nodes 
+  # two output nodes
+  # append captured, left_engery, dis, age at the end
   def record(self, r_list):
+    if self.file_fp == None:
+      return
     for obj in r_list:
       self.file_fp.write(str(obj)+',')
     captured = 0
@@ -422,8 +443,8 @@ class Predator:
     self.loc = np.array([float(x), float(y)])
     self.prevLoc = np.array([float(x), float(y)])
     # velocity
-    self.vel = 0.0
-    self.acc = 0.0
+    self.vel = 1.0
+    self.acc = 0.1
     self.direction = Direction.N
     self.speed = Speed.up
     self.maxSpeed = 50/scale # 49.7 mph
@@ -432,8 +453,8 @@ class Predator:
     self.captureRadius = 10
 
     #for finding target
-    self.target_idx = -1
-    self.closest_idx = -1
+    self.target_idx = 0
+    self.closest_idx = 0
 
     #set default engery
     self.energy = Default_Engery 
@@ -464,13 +485,14 @@ class Predator:
     return nnlist
 
   def update(self, predators, preys, info):
+    #print str(self.state) + ' : ' + str(self.vel)
     #self.PredForce( preys, predators )
     #self.vel += self.acc
     #self.loc += self.vel
     #self.acc = np.array([0., 0.])
     self.direction = info[1]
     self.speed = info[0]
-
+    self.state = self.speed
     # Update Direction
     orientation = np.array([0., 0.])
     if self.direction == Direction.N:
@@ -500,11 +522,13 @@ class Predator:
       self.acc = 0
 
     # Update Speed
+    deltaVel = self.vel
     self.vel += self.acc
     if self.vel >= self.maxSpeed:
       self.vel = self.maxSpeed
     elif self.vel <= 0:
       self.vel = 0.0
+    deltaVel = abs(self.vel - deltaVel)
     #print self.vel
 
     # Update Location
@@ -512,7 +536,7 @@ class Predator:
     self.loc += orientation*self.vel
 
     # Update Energy
-    self.consumeEnergy(self.vel)
+    self.consumeEnergy(deltaVel)
 
     '''#for testing
     if self.loc[0] <= 0:

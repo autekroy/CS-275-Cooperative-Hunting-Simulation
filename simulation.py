@@ -59,14 +59,16 @@ class Simulation:
 if __name__ == "__main__":
   # load save state from file
   generation = 1
-
+  iter_num = 0
+  max_iter = 1
   filename = ""
-  if len(sys.argv) > 1:
+  if len(sys.argv) > 2:
     filename = sys.argv[1]
-  simulation = Simulation(generation, 3, 2, 1000, 700, filename)
+    max_iter = int(sys.argv[2])
+  simulation = Simulation(generation, 3, 2, 1000, 700, filename+str(iter_num)+'.csv')
   
   # main loop
-  while 1: 
+  while iter_num < max_iter: 
     for event in pygame.event.get():
       # check for exit
       if event.type == pygame.QUIT: 
@@ -78,4 +80,6 @@ if __name__ == "__main__":
         sys.exit()
     simulation.update(1)
     if simulation.ifend() == 1:
-      break
+      iter_num += 1
+      if iter_num < max_iter:
+        simulation = Simulation(generation, 3, 2, 1000, 700, filename+str(iter_num)+'.csv')
