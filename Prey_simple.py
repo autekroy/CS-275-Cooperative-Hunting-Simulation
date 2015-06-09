@@ -42,6 +42,7 @@ class Prey_simple:
     self.maxForce = 50/scale # 40mph
     self.mass = 723 # 723.1lb
     self.repelRadius = 100
+    self.status = 0
   
   def update(self, preys, preds):
     self.repelForce(preds)

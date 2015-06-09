@@ -8,6 +8,7 @@ import sys
 import NNW
 import Prey
 import Predator
+import Prey_simple as SPrey
 
 from pybrain.structure import RecurrentNetwork, FeedForwardNetwork, LinearLayer, SigmoidLayer, FullConnection
 
@@ -65,7 +66,7 @@ class Environment:
     self.preys = []
     self.prey_deaths = []
     for i in range(self.num_prey):
-      p = Prey.Prey(400+random.random() * 200, 250+random.random() * 200)
+      p = SPrey.Prey_simple(400+random.random() * 200, 250+random.random() * 200)
       self.preys.append(p)
 
     # create predator instances
@@ -129,11 +130,11 @@ class Environment:
     n_speed_idx_list = np.argsort(nnlist_speed)
     n_speed_top = n_speed_idx_list[::-1][0]
     if n_speed_top == 0:
-      info.append(Speed.up)
+      info.append(0)
     elif n_speed_top == -1:
-      info.append(Speed.down)
+      info.append(-1)
     else:
-      info.append(Speed.maintain)
+      info.append(1)
     n_dir_idx_list = np.argsort(nnlist_dir)
     n_dir_top = n_dir_idx_list[::-1][0]
     info.append(n_dir_top)
@@ -299,7 +300,7 @@ class Environment:
       pickle.dump(self.predators, f)
       f.close()
   def getPrey_Radius():
-    return Prey.radius()
+    return SPrey.radius()
 
 
 
