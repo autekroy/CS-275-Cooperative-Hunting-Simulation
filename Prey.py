@@ -30,6 +30,8 @@ def limit(v, lim):
   if norm == 0:
     return v
   return np.multiply(normalize(v), lim)
+
+  
 class Prey:
   radius = 7
   def __init__(self, x, y):
