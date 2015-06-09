@@ -6,6 +6,7 @@ from enum import Enum
 import numpy as np
 import sys
 import NNW
+import Prey
 
 from pybrain.structure import RecurrentNetwork, FeedForwardNetwork, LinearLayer, SigmoidLayer, FullConnection
 
@@ -80,7 +81,7 @@ class Environment:
     self.preys = []
     self.prey_deaths = []
     for i in range(self.num_prey):
-      p = Prey(400+random.random() * 200, 250+random.random() * 200)
+      p = Prey.Prey(400+random.random() * 200, 250+random.random() * 200)
       self.preys.append(p)
 
     # create predator instances
@@ -153,18 +154,19 @@ class Environment:
     n_dir_top = n_dir_idx_list[::-1][0]
     info.append(n_dir_top)
     return info
+
   def filt_with_threshold(self, l1, l2, ans):
     for i in range(0, self.num_predator):
       for j in range(0,len(l1)/self.num_predator):
         if j == ans[i][0]:
-          l1[i*3+j] = 1
+          l1[i*3+j] = 1.0
         else:
-          l1[i*3+j] = 0
+          l1[i*3+j] = 0.0
       for j in range(0,len(l2)/self.num_predator):
         if j == ans[i][1]:
-          l2[i*8+j] = 1
+          l2[i*8+j] = 1.0
         else:
-          l2[i*8+j] = 0
+          l2[i*8+j] = 0.0
     return l1,l2
 
   def update(self):
@@ -208,7 +210,6 @@ class Environment:
       count += 1
       cur_res.append(update_info)
  
-    #update the target of predator
     if len(self.pred_deaths) > 0 or len(self.prey_deaths) > 0:
       self.halt = 1
       nn_out_speed, nn_out_dir = self.filt_with_threshold(nn_out_speed,nn_out_dir,cur_res)
@@ -313,119 +314,8 @@ class Environment:
       f = open(self.filename, 'w')
       pickle.dump(self.predators, f)
       f.close()
-
-# prey
-class Prey:
-  radius = 7 # 7'2"
-  def __init__(self, x, y):
-
-    self.loc = np.array([float(x), float(y)])
-    self.vel = np.array([0., 0.])
-    self.acc = np.array([0., 0.])
-    self.maxForce = 3 # 40mph
-    self.mass = 10 # 723.1lb
-    self.repelRadius = 100  
-    self.status = 0
-  
-  def update(self, preys, preds):
-    self.repelForce(preds, self.repelRadius)
-    if preyFleeing == 1:
-      self.preyFleeForce(preys)
-      self.vel += self.acc
-      self.loc += self.vel      
-    else: # if prey idle, random move
-      self.loc += np.array([random.random()*4 - 2, random.random()*4 - 2])
-    self.acc = np.array([0., 0.])
-    '''#for testing
-    if self.loc[0] <= 0:
-      self.loc[0] = self.width
-    elif self.loc[0] > self.width:
-      self.loc[0] = 0
-
-    if self.loc[1] <= 0:
-      self.loc[1] = self.height
-    elif self.loc[1] > self.height:
-      self.loc[1] = 0 
-    #------------end of testing'''
-  def applyF(self, force):
-    # F = ma (a = F/m)
-    a = force / self.mass
-    self.acc += a
-
-  # avoid the average position of other boids
-  def avoidForce(self, preys):
-    count = 0
-    locSum = np.array([0., 0.])
-    for otherPrey in preys:
-      separation = self.mass + 20
-      dist = otherPrey.loc - self.loc
-      d = np.linalg.norm(dist)
-      if d != 0 and d < separation:
-        locSum += otherPrey.loc
-        count += 1
-    if count > 0:
-      locSum /= count # average loc
-      avoidVec = self.loc - locSum
-      avoidVec = limit(avoidVec, self.maxForce*2.5)
-      self.applyF(avoidVec)
-
-  # cohesion
-  def approachForce(self, preys):
-    count = 0
-    locSum = np.array([0., 0.])
-    for otherPrey in preys:
-      approachRadius = self.mass + 60
-      dist = otherPrey.loc - self.loc
-      d = np.linalg.norm(dist)
-      if d != 0 and d < approachRadius:
-        locSum += otherPrey.loc
-        count += 1
-    if count > 0:
-      locSum /= count
-      approachVec = locSum - self.loc
-      approachVec = limit(approachVec, self.maxForce)
-      self.applyF(approachVec)
-
-  # align
-  def alignForce(self, preys):
-    count = 0
-    velSum = np.array([0., 0.])
-    for otherPrey in preys:
-      alignRadius = self.mass + 100
-      dist = otherPrey.loc - self.loc
-      d = np.linalg.norm(dist)
-      if d != 0 and d < alignRadius:
-        velSum += otherPrey.vel
-        count += 1
-      if count > 0:
-        velSum /= count
-        alignVec = velSum
-        alignVec = limit(alignVec, self.maxForce)
-        self.applyF(alignVec)
-
-  def repelForce(self, preds, r):
-    for pred in preds:
-      futurePos = self.loc + self.vel
-      dist = pred.loc - futurePos
-      d = np.linalg.norm(dist)
-
-      if d <= r:
-        # change prey state
-        global preyFleeing
-        if preyFleeing == 0:
-          preyFleeing = 1
-
-        repelVec = self.loc - pred.loc
-        repelVec = normalize(repelVec)
-        repelVec *= (self.maxForce * 5)
-        if d != 0:
-          repelVec /= d*0.01
-        self.applyF(repelVec)
-
-  def preyFleeForce(self, preys):
-    self.avoidForce(preys)
-    self.approachForce(preys)
-    self.alignForce(preys)
+  def getPrey_Radius():
+    return Prey.radius()
 
 # Animats     
 class Predator:
