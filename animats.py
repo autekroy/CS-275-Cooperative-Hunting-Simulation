@@ -59,7 +59,10 @@ class Environment:
     self.moveLog = []
     # save state
     self.filename = filename
-
+    self.file_fp = None
+    if filename!='':
+      self.file_fp = open(filename,'w')
+    self.timeframe = 0
     # predators
 
     self.cotarget_idx = None
@@ -69,6 +72,7 @@ class Environment:
 
     self.capturedPrey = []
     self.placeRadius = 200;
+    self.halt = 0
 
     saved_states = self.load()
 
@@ -95,10 +99,13 @@ class Environment:
     #-- Method 1 ---------------------#
     #-- Initial Stage ----------------#
     #-- First Network ---: Speed -----#
-    self.speed_net = NNW.NNW(22,20,9)
+    self.speed_net = NNW.NNW(28,32,9)
     #-- Second Network --: Direction -#
-    self.dir_net = NNW.NNW(22,20,24)
+    self.dir_net = NNW.NNW(28,40,24)
     #---------------------------------#
+
+  def end_iteration(self):
+    return self.halt
 
   def getNNWInput(self):
     input_vals = []
@@ -109,6 +116,9 @@ class Environment:
           loc = other.loc - pred.loc
           input_vals.append(loc[0])
           input_vals.append(loc[1])
+      loc = self.preys[0].loc - pred.loc
+      input_vals.append(loc[0])
+      input_vals.append(loc[1])
     input_vals.append(self.preys[0].status)
     return input_vals
 
@@ -139,7 +149,6 @@ class Environment:
       info.append(Speed.down)
     else:
       info.append(Speed.maintain)
-
     n_dir_idx_list = np.argsort(nnlist_dir)
     n_dir_top = n_dir_idx_list[::-1][0]
     info.append(n_dir_top)
@@ -183,9 +192,41 @@ class Environment:
       if pred not in self.pred_deaths and (pred.energy < 0):
         self.pred_deaths.append(pred)
       count += 1
-    
+ 
     #update the target of predator
-    self.update_cotarget()    
+    if len(self.pred_deaths) > 0 or len(self.prey_deaths) > 0:
+      self.halt = 1
+      
+      r_list = list(input_vals) + list(nn_out_speed) + list(nn_out_dir)
+      self.record(r_list)
+      self.file_fp.close()
+      return
+
+    r_list = list(input_vals) + list(nn_out_speed) + list(nn_out_dir)
+    self.update_cotarget()
+    self.timeframe += 1
+    if self.timeframe == 5:
+      self.record(r_list)
+      self.timeframe = 0  
+
+  def record(self, r_list):
+    for obj in r_list:
+      self.file_fp.write(str(obj)+',')
+    captured = 0
+    left_energy = 0
+    distance = 0
+    age = 0
+    if len(self.prey_deaths) > 0:
+      captured= 1
+    for pred in self.predators:
+      left_energy += pred.energy
+      dist = self.preys[0].loc - pred.loc 
+      distance += np.linalg.norm(dist)
+      age += pred.age
+    left_energy /= self.num_predator
+    distance /= self.num_predator
+    age /= self.num_predator
+    self.file_fp.write(str(captured) + ' ,' + str(left_energy)+' ,'+str(distance) + ' ,' + str(age)+'\n')
 
   def update_cotarget(self):
     if len(self.preys) == 0:
@@ -403,6 +444,7 @@ class Predator:
     self.state = 0
 
     # neural net
+    '''
     self.net = FeedForwardNetwork()
     self.net.addInputModule(LinearLayer(9, name='in'))
     self.net.addModule(SigmoidLayer(9, name='hidden'))
@@ -410,7 +452,7 @@ class Predator:
     self.net.addConnection(FullConnection(self.net['in'], self.net['hidden']))
     self.net.addConnection(FullConnection(self.net['hidden'], self.net['out']))
     self.net.sortModules()
-
+    '''
     # thresholds for deciding an action
     self.move_threshold = 0
 
@@ -487,7 +529,7 @@ class Predator:
       self.record()
     '''
 
-    sensors = ()
+    #sensors = ()
     '''decision = self.net.activate(sensors)'''
     # consume energy based on differnt current behavior
     self.age += 1
@@ -591,6 +633,3 @@ class Predator:
     self.approachForce(preys)
     #self.avoidForce(prads)
   '''
-  def record(self):
-    #record current locations
-    return

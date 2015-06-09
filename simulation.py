@@ -32,6 +32,9 @@ class Simulation:
 
     self.env = animats.Environment(generation, num_preds, num_preys, width, height, saved_nets)
 
+  def ifend(self):
+    return self.env.end_iteration()
+
   def update(self, speed):
     # update model a certain number of times
     for i in range(speed):
@@ -74,3 +77,5 @@ if __name__ == "__main__":
         fLog.close()
         sys.exit()
     simulation.update(1)
+    if simulation.ifend() == 1:
+      break
