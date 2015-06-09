@@ -31,7 +31,7 @@ def limit(v, lim):
   if norm == 0:
     return v
   return np.multiply(normalize(v), lim)
-  
+
 class Predator:
   radius = 9
   def __init__(self, x, y, generation):
@@ -132,7 +132,7 @@ class Predator:
       self.vel = self.maxSpeed
     elif self.vel <= 0:
       self.vel = 0.0
-    deltaVel = abs(self.vel - deltaVel)
+    deltaVel = abs(self.vel + deltaVel)/2
     #print self.vel
 
     # Update Location

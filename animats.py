@@ -115,7 +115,6 @@ class Environment:
     radius = random.randrange(placeRadius, placeRadius + 20)
     x = math.cos(degree) * radius
     y = math.sin(degree) * radius
-
     centerX = self.width / 2
     centerY = self.height /2
     # print math.cos(math.radians(360)), math.sin(math.radians(270))
@@ -129,11 +128,11 @@ class Environment:
     n_speed_idx_list = np.argsort(nnlist_speed)
     n_speed_top = n_speed_idx_list[::-1][0]
     if n_speed_top == 0:
-      info.append(Speed.up)
-    elif n_speed_top == -1:
-      info.append(Speed.down)
+      info.append(Speed.up)#0
+    elif n_speed_top == 1:
+      info.append(Speed.down)#-1
     else:
-      info.append(Speed.maintain)
+      info.append(Speed.maintain)#1
     n_dir_idx_list = np.argsort(nnlist_dir)
     n_dir_top = n_dir_idx_list[::-1][0]
     info.append(n_dir_top)
