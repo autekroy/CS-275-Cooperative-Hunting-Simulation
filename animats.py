@@ -522,11 +522,13 @@ class Predator:
       self.acc = 0
 
     # Update Speed
+    deltaVel = self.vel
     self.vel += self.acc
     if self.vel >= self.maxSpeed:
       self.vel = self.maxSpeed
     elif self.vel <= 0:
       self.vel = 0.0
+    deltaVel = abs(self.vel - deltaVel)
     #print self.vel
 
     # Update Location
@@ -534,7 +536,7 @@ class Predator:
     self.loc += orientation*self.vel
 
     # Update Energy
-    self.consumeEnergy(self.vel)
+    self.consumeEnergy(deltaVel)
 
     '''#for testing
     if self.loc[0] <= 0:
