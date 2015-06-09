@@ -129,11 +129,11 @@ class Environment:
     n_speed_idx_list = np.argsort(nnlist_speed)
     n_speed_top = n_speed_idx_list[::-1][0]
     if n_speed_top == 0:
-      info.append(Speed.up)
+      info.append(0)
     elif n_speed_top == -1:
-      info.append(Speed.down)
+      info.append(-1)
     else:
-      info.append(Speed.maintain)
+      info.append(1)
     n_dir_idx_list = np.argsort(nnlist_dir)
     n_dir_top = n_dir_idx_list[::-1][0]
     info.append(n_dir_top)
@@ -170,6 +170,8 @@ class Environment:
 
     # get the result from NNW
     input_vals = self.getNNWInput()
+    print input_vals
+
     nn_out_speed = self.speed_net.activate(input_vals)
     nn_out_dir = self.dir_net.activate(input_vals)
 

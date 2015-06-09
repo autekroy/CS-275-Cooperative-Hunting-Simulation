@@ -62,9 +62,9 @@ if __name__ == "__main__":
   iter_num = 0
   max_iter = 1
   filename = ""
-  if len(sys.argv) > 2:
-    filename = sys.argv[1]
-    max_iter = int(sys.argv[2])
+  if len(sys.argv) > 1:
+    filename = "training_data"
+    max_iter = int(sys.argv[1])
   simulation = Simulation(generation, 3, 2, 1000, 700, filename+str(iter_num)+'.csv')
   
   # main loop
