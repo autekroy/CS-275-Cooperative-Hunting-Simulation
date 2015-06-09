@@ -99,23 +99,24 @@ class Predator:
     self.state = self.speed
     # Update Direction
     orientation = np.array([0., 0.])
-    if self.direction == Direction.N:
+    if self.direction == 0:
       orientation = np.array([0., -1.0])
-    elif self.direction == Direction.NE:
+    elif self.direction == 1:
       orientation = np.array([1.0, -1.0])
-    elif self.direction == Direction.E:
+    elif self.direction == 2:
       orientation = np.array([1.0, 0.])
-    elif self.direction == Direction.SE:
+    elif self.direction == 3:
       orientation = np.array([1.0, 1.0])
-    elif self.direction == Direction.S:
+    elif self.direction == 4:
       orientation = np.array([0., 1.0])
-    elif self.direction == Direction.SW:
+    elif self.direction == 5:
       orientation = np.array([-1.0, 1.0])
-    elif self.direction == Direction.W:
+    elif self.direction == 6:
       orientation = np.array([-1.0, 0.])
-    elif self.direction == Direction.NW:
+    elif self.direction == 7:
       orientation = np.array([-1.0, -1.0])
     orientation = normalize(orientation)
+
 
     # Update Acc
     if self.speed == Speed.up:
@@ -132,7 +133,7 @@ class Predator:
       self.vel = self.maxSpeed
     elif self.vel <= 0:
       self.vel = 0.0
-    deltaVel = abs(self.vel - deltaVel)
+    deltaVel = (self.vel + deltaVel)/2
     #print self.vel
 
     # Update Location

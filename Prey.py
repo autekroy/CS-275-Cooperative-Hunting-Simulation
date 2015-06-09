@@ -40,11 +40,11 @@ class Prey:
     self.acc = np.array([0., 0.])
     self.maxForce = 3 # 40mph
     self.mass = 10 # 723.1lb
-    self.repelRadius = 100  
+    self.repelRadius = 100
     self.status = 0
   
   def update(self, preys, preds):
-    self.repelForce(preds, self.repelRadius)
+    self.repelForce(preds)
     if preyFleeing == 1:
       self.preyFleeForce(preys)
       self.vel += self.acc
@@ -119,13 +119,13 @@ class Prey:
         alignVec = limit(alignVec, self.maxForce)
         self.applyF(alignVec)
 
-  def repelForce(self, preds, r):
+  def repelForce(self, preds):
     for pred in preds:
       futurePos = self.loc + self.vel
       dist = pred.loc - futurePos
       d = np.linalg.norm(dist)
 
-      if d <= r:
+      if d <= self.repelRadius:
         # change prey state
         global preyFleeing
         if preyFleeing == 0:
