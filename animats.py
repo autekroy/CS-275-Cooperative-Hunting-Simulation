@@ -5,6 +5,7 @@ import math
 from enum import Enum
 import numpy as np
 import sys
+import NNW
 
 from pybrain.structure import RecurrentNetwork, FeedForwardNetwork, LinearLayer, SigmoidLayer, FullConnection
 
@@ -76,19 +77,26 @@ class Environment:
         a.generation = 1
       self.predators.append(a)
 
-  # line of sight
-  # def line_of_sight(self, animat):
-  #   step_x = int(math.cos(animat.direction*math.pi / 180) * 10)
-  #   step_y = int(math.sin(animat.direction*math.pi / 180) * 10)
-  #   new_x = animat.loc[0] + step_x
-  #   new_y = animat.loc[1] + step_y
-  #   sees = None
-  #   while not sees:
-  #     new_x += step_x
-  #     new_y += step_y
-  #     sees = self.collision(new_x, new_y, Predator.radius, animat)
-  #   return sees
+    #---------Neural Network----------#
+    #-- Method 1 ---------------------#
+    #-- Initial Stage ----------------#
+    #-- First Network ---: Speed -----#
+    self.speed_net = NNW.NNW(22,20,9)
+    #-- Second Network --: Direction -#
+    self.dir_net = NNW.NNW(22,20,24)
+    #---------------------------------#
 
+  def getNNWInput(self):
+    input_vals = []
+    for pred in self.predators:
+      input_vals = input_vals + pred.getNNWInputList()
+      for other in self.predators:
+        if pred != other:
+          loc = other.loc - pred.loc
+          input_vals.append(loc[0])
+          input_vals.append(loc[1])
+    input_vals.append(self.preys[0].status)
+    return input_vals
 
   def findSpace(self, count, placeRadius, noCoverDegree, AnimateRadius):
     degree = random.randrange(noCoverDegree , 360.0/self.num_predator - noCoverDegree)  # random degree
@@ -117,37 +125,28 @@ class Environment:
     while len(self.prey_deaths ) > 0:
       self.preys.remove(self.prey_deaths.pop(0))
       print "capture Prey"
-    
+
+
     # update each prey
     for prey in self.preys:
       prey.update(self.preys, self.predators)
 
+    # get the result from NNW
+    input_vals = self.getNNWInput()
+    nn_out_speed = self.speed_net.activate(input_vals)
+    nn_out_dir = self.dir_net.activate(input_vals)
+
     # update each predator
     for pred in self.predators:
-      # Sight
-      #animat.sees = self.line_of_sight(animat)
-      # Touch
-      #step = 3
-      #step_x = int(math.cos(animat.direction*math.pi / 180) * step)
-      #step_y = int(math.sin(animat.direction*math.pi / 180) * step)
-      #animat.touching = self.collision(animat.loc[0] + step_x, animat.loc[1] + step_y, Predator.radius, animat)
       # Capture
-      captured = self.capture(pred.loc[0] , pred.loc[1] , Predator.radius, pred)
-
-      # update
+      #captured = self.capture(pred.loc[0] , pred.loc[1] , Predator.radius, pred)
+      # Update
       pred.update(self.predators, self.preys)
-
-      # moviing
-      #pred.loc[0] = step_x + pred.loc[0]
-      #pred.loc[1] = step_y + pred.loc[1]
-
       # CAPTURE
       deadPrey = pred.capturePrey(self.preys)
       if (deadPrey != None) and (deadPrey not in self.prey_deaths):
         self.prey_deaths.append(deadPrey)
-
       # DEATH 
-
       if pred not in self.pred_deaths and (pred.energy < 0):
         self.pred_deaths.append(pred)
     
@@ -257,6 +256,7 @@ class Prey:
     self.maxForce = 3
     self.mass = 10 
     self.repelRadius = 100  
+    self.status = 0
   
   def update(self, preys, preds):
     self.repelForce(preds, self.repelRadius)
@@ -378,7 +378,7 @@ class Predator:
 
     self.maxForce = 30
     self.mass = 32 
-    self.captureRadius = 10
+    self.captureRadius = 15
 
     #for finding target
     self.target_idx = -1
@@ -394,6 +394,7 @@ class Predator:
     self.touching = None
     self.sees = None
     self.behavior = Behavior.stay
+    self.state = 0
 
 
     # neural net
@@ -407,7 +408,12 @@ class Predator:
 
     # thresholds for deciding an action
     self.move_threshold = 0
-
+  def getNNWInputList(self):
+    nnlist = []
+    nnlist.append(np.linalg.norm(self.vel))
+    nnlist.append(self.energy)
+    nnlist.append(self.state)
+    return nnlist
   def update(self, predators, preys):
     self.PredForce( preys, predators )
     self.vel += self.acc
@@ -453,6 +459,22 @@ class Predator:
          child.net.params[i] = random.choice([self.net.params[i], other.net.params[i]])
     return child
 
+  def updateForce(vel):
+    if self.behavior == Behavior.stay:
+      print 'a'
+    elif self.behavior == Behavior.stalk:
+      print 'b'
+    elif self.behavior == Behavior.hunt:
+      print 'c'
+
+  def updateEngery(vel):
+    if self.behavior == Behavior.stay:
+      print 'a'
+    elif self.behavior == Behavior.stalk:
+      print 'b'
+    elif self.behavior == Behavior.hunt:
+      print 'c'
+
   def applyF(self, force):
     # F = ma (a = F/m)
     a = force / self.mass
@@ -460,7 +482,6 @@ class Predator:
 
   def approachForce(self, preys):
     count = 0
-
     approachRadius = self.mass + 260
 #    captureRadius = 3.0
     min_dist = sys.float_info.max
@@ -485,6 +506,8 @@ class Predator:
       approachVec = preys[self.target_idx].loc - self.loc
       approachVec = normalize(approachVec)
       approachVec *= self.maxForce*2
+      #approachVec = self.updateForce(approachVec)
+      #approachVec = self.updateEngery(approachVec)
       self.applyF(approachVec)
 
   def avoidForce(self, preds):
