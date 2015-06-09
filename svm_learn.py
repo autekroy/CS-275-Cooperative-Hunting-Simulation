@@ -21,8 +21,8 @@ def train(training):
 	return clf
 		
 
-def learn(lion1_pos, lion2_pos, zebra1_pos, zebra2_pos, self_behav, lion1_behav, lion2_behav, zebra1_behav, zebra2_behav):
-	return train(selected_lions).predict(np.array([[lion1_pos, lion2_pos, zebra1_pos, zebra2_pos, self_behav, lion1_behav, lion2_behav, zebra1_behav, zebra2_behav]]))
+def learn(lion1_posx, lion1_posy, lion2_posx, lion2_posy, zebra1_posx, zebra1_posy, zebra2_posx, zebra2_posy, lion1_behav, lion2_behav, zebra1_behav, zebra2_behav):
+	return train(selected_lions).predict(np.array([[lion1_posx, lion1_posy, lion2_posx, lion2_posy, zebra1_posx, zebra1_posy, zebra2_posx, zebra2_posy, lion1_behav, lion2_behav, zebra1_behav, zebra2_behav]]))
 
 
 	
