@@ -48,7 +48,7 @@ class Simulation:
 
     # paint prey
     for prey in self.env.preys:
-      self.screen.blit(self.prey, (prey.loc[0] - animats.Prey.radius, prey.loc[1] - animats.Prey.radius))
+      self.screen.blit(self.prey, (prey.loc[0] - prey.radius, prey.loc[1] - prey.radius))
 
     # paint predator
     for pred in self.env.predators:
