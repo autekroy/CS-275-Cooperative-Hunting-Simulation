@@ -10,12 +10,28 @@ import NNW
 from pybrain.structure import RecurrentNetwork, FeedForwardNetwork, LinearLayer, SigmoidLayer, FullConnection
 
 preyFleeing = 0
-Default_Engery = 100
+Default_Engery = 1000
+scale = 5.0
 
 class Behavior(Enum): 
     stay = 0
     stalk  = -1
     hunt = 1
+
+class Speed(Enum): 
+    up = 0
+    down = -1
+    maintain = 1
+
+class Direction(Enum): 
+    N = 0
+    NE = 1
+    E = 2
+    SE = 3
+    S = 4
+    SW = 5
+    W = 6
+    NW = 7
 
 def normalize(v):
     norm = np.linalg.norm(v)
@@ -28,7 +44,6 @@ def limit(v, lim):
   if norm == 0:
     return v
   return np.multiply(normalize(v), lim)
-
 
 class Environment:
   def __init__(self, generation, num_predator, num_prey, width, height, filename):
@@ -76,7 +91,6 @@ class Environment:
         a = Predator(pos[0], pos[1], generation)
         a.generation = 1
       self.predators.append(a)
-
     #---------Neural Network----------#
     #-- Method 1 ---------------------#
     #-- Initial Stage ----------------#
@@ -115,6 +129,21 @@ class Environment:
     y = centerY + y
     return (x, y)
 
+  def extract_info_from_nnlist(self, nnlist_speed, nnlist_dir):
+    info = []
+    n_speed_idx_list = np.argsort(nnlist_speed)
+    n_speed_top = n_speed_idx_list[::-1][0]
+    if n_speed_top == 0:
+      info.append(Speed.up)
+    elif n_speed_top == -1:
+      info.append(Speed.down)
+    else:
+      info.append(Speed.maintain)
+
+    n_dir_idx_list = np.argsort(nnlist_dir)
+    n_dir_top = n_dir_idx_list[::-1][0]
+    info.append(n_dir_top)
+    return info
 
   def update(self):
     # if an animat died, the two fittest predators mate
@@ -136,12 +165,16 @@ class Environment:
     nn_out_speed = self.speed_net.activate(input_vals)
     nn_out_dir = self.dir_net.activate(input_vals)
 
+    count = 0
     # update each predator
     for pred in self.predators:
+      update_info = self.extract_info_from_nnlist(nn_out_speed[count*3:count*3+3],nn_out_dir[count*8:count*8+8])
+
       # Capture
       #captured = self.capture(pred.loc[0] , pred.loc[1] , Predator.radius, pred)
       # Update
-      pred.update(self.predators, self.preys)
+      pred.update(self.predators, self.preys, update_info)
+
       # CAPTURE
       deadPrey = pred.capturePrey(self.preys)
       if (deadPrey != None) and (deadPrey not in self.prey_deaths):
@@ -149,6 +182,7 @@ class Environment:
       # DEATH 
       if pred not in self.pred_deaths and (pred.energy < 0):
         self.pred_deaths.append(pred)
+      count += 1
     
     #update the target of predator
     self.update_cotarget()    
@@ -182,8 +216,6 @@ class Environment:
       count+=1
     return 
 
-
-
   def collision(self, x, y, radius, without=None):
     # check wall collision
     if (y + radius) > self.height or (x + radius) > self.width  \
@@ -199,32 +231,6 @@ class Environment:
         return animat
     # no collision
     return None
-
-  def capture(self, x, y, radius, without=None):
-    # check if captured
-    if (y + radius) > self.height or (x + radius) > self.width  \
-    or (x - radius) < 0 or (y - radius) < 0:
-      return self
-    # check animat-animat collision
-    predators = list(self.predators)
-    preys = list(self.preys)
-    prey_idx = []
-    if without:
-      predators.remove(without)
-    for animat in predators:
-      count = 0
-      for prey in preys:
-        if (x - animat.loc[0])**2 + (y - animat.loc[1])**2 <= Predator.radius**2:
-          prey_idx.append(count)
-        count += 1
-    captured = []
-    for i in range(0,len(prey_idx)):
-      captured.append(self.preys[prey_idx[i]])
-    for i in range(0,len(prey_idx)):
-      self.preys.remove(captured[i])
-      print "remove: " + str(i) + " prey"
-      self.cotarget_idx = -1 
-    return captured
 
   # load animat states
   def load(self):
@@ -248,13 +254,14 @@ class Environment:
 
 # prey
 class Prey:
+  radius = 7 # 7'2"
   def __init__(self, x, y):
 
     self.loc = np.array([float(x), float(y)])
     self.vel = np.array([0., 0.])
     self.acc = np.array([0., 0.])
-    self.maxForce = 3
-    self.mass = 10 
+    self.maxForce = 3 # 40mph
+    self.mass = 10 # 723.1lb
     self.repelRadius = 100  
     self.status = 0
   
@@ -360,7 +367,7 @@ class Prey:
 
 # Animats     
 class Predator:
-  radius = 10
+  radius = 9 # 9'2"
   def __init__(self, x, y, generation):
     #for testing
     #self.width = 1000
@@ -372,13 +379,16 @@ class Predator:
 
     #position
     self.loc = np.array([float(x), float(y)])
+    self.prevLoc = np.array([float(x), float(y)])
     # velocity
-    self.vel = np.array([0., 0.])
-    self.acc = np.array([0., 0.])
-
-    self.maxForce = 30
-    self.mass = 32 
-    self.captureRadius = 15
+    self.vel = 0.0
+    self.acc = 0.0
+    self.direction = Direction.N
+    self.speed = Speed.up
+    self.maxSpeed = 50/scale # 49.7 mph
+    
+    self.mass = 440 # 441lb
+    self.captureRadius = 10
 
     #for finding target
     self.target_idx = -1
@@ -388,14 +398,9 @@ class Predator:
     self.energy = Default_Engery 
     self.targetPrey = None
 
-    #set orientation range in (0 - 359 degrees)
-    self.direction = 0
-
     self.touching = None
-    self.sees = None
     self.behavior = Behavior.stay
     self.state = 0
-
 
     # neural net
     self.net = FeedForwardNetwork()
@@ -408,17 +413,65 @@ class Predator:
 
     # thresholds for deciding an action
     self.move_threshold = 0
+
   def getNNWInputList(self):
     nnlist = []
     nnlist.append(np.linalg.norm(self.vel))
     nnlist.append(self.energy)
     nnlist.append(self.state)
     return nnlist
-  def update(self, predators, preys):
-    self.PredForce( preys, predators )
+
+  def update(self, predators, preys, info):
+    #self.PredForce( preys, predators )
+    #self.vel += self.acc
+    #self.loc += self.vel
+    #self.acc = np.array([0., 0.])
+    self.direction = info[1]
+    self.speed = info[0]
+
+    # Update Direction
+    orientation = np.array([0., 0.])
+    if self.direction == Direction.N:
+      orientation = np.array([0., -1.0])
+    elif self.direction == Direction.NE:
+      orientation = np.array([1.0, -1.0])
+    elif self.direction == Direction.E:
+      orientation = np.array([1.0, 0.])
+    elif self.direction == Direction.SE:
+      orientation = np.array([1.0, 1.0])
+    elif self.direction == Direction.S:
+      orientation = np.array([0., 1.0])
+    elif self.direction == Direction.SW:
+      orientation = np.array([-1.0, 1.0])
+    elif self.direction == Direction.W:
+      orientation = np.array([-1.0, 0.])
+    elif self.direction == Direction.NW:
+      orientation = np.array([-1.0, -1.0])
+    orientation = normalize(orientation)
+
+    # Update Acc
+    if self.speed == Speed.up:
+      self.acc = 10/scale
+    elif self.speed == Speed.down:
+      self.acc = -20/scale
+    elif self.speed == Speed.maintain:
+      self.acc = 0
+
+    # Update Speed
     self.vel += self.acc
-    self.loc += self.vel
-    self.acc = np.array([0., 0.])
+    if self.vel >= self.maxSpeed:
+      self.vel = self.maxSpeed
+    elif self.vel <= 0:
+      self.vel = 0.0
+    #print self.vel
+
+    # Update Location
+    self.prevLoc = self.loc
+    self.loc += orientation*self.vel
+
+    # Update Energy
+    self.consumeEnergy(self.vel)
+
     '''#for testing
     if self.loc[0] <= 0:
       self.loc[0] = self.width
@@ -432,22 +485,14 @@ class Predator:
       self.record()
     '''
 
-
     sensors = ()
     '''decision = self.net.activate(sensors)'''
     # consume energy based on differnt current behavior
     self.age += 1
-    self.consumeEnergy(self.behavior)
     self.timeframe += 1
 
-
-  def consumeEnergy(self, action):
-    if action == Behavior.stay:
-      self.energy -= 1
-    elif action == Behavior.stalk:
-      self.energy -= 5
-    elif action == Behavior.hunt:
-      self.energy -= 10
+  def consumeEnergy(self, v):
+    self.energy -= v
 
   # returns a child with a genetic combination of neural net weights of 2 parents
   def mate(self, other):
@@ -459,22 +504,7 @@ class Predator:
          child.net.params[i] = random.choice([self.net.params[i], other.net.params[i]])
     return child
 
-  def updateForce(vel):
-    if self.behavior == Behavior.stay:
-      print 'a'
-    elif self.behavior == Behavior.stalk:
-      print 'b'
-    elif self.behavior == Behavior.hunt:
-      print 'c'
-
-  def updateEngery(vel):
-    if self.behavior == Behavior.stay:
-      print 'a'
-    elif self.behavior == Behavior.stalk:
-      print 'b'
-    elif self.behavior == Behavior.hunt:
-      print 'c'
-
+  '''
   def applyF(self, force):
     # F = ma (a = F/m)
     a = force / self.mass
@@ -525,13 +555,13 @@ class Predator:
       avoidVec = self.loc - locSum
       avoidVec = limit(avoidVec, self.maxForce)
       self.applyF(avoidVec)
+  '''
 
   def capturePrey(self, preys):
-    futurePos = self.loc + self.vel
-    x = self.loc[0]
-    y = self.loc[1]
-    futureX = futurePos[0]
-    futureY = futurePos[1]
+    x = self.prevLoc[0]
+    y = self.prevLoc[1]
+    futureX = self.loc[0]
+    futureY = self.loc[1]
 
     if x >= futureX:
       x += self.captureRadius
@@ -554,11 +584,11 @@ class Predator:
         if (y <= preyY and futureY >= preyY) or (y >= preyY and futureY <= preyY):
           return prey
     return None
-
+  '''
   def PredForce(self, preys, prads):
     self.approachForce(preys)
     #self.avoidForce(prads)
-
+  '''
   def record(self):
     #record current locations
     return

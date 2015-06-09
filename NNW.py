@@ -53,7 +53,7 @@ class NNW:
     # 1. maxEpochs: at most that many epochs are trained. 
     # 2. continueEpochs: Each time validation error hits a minimum, try for continueEpochs epochs to find a better one.
     # 3. validationProportion: ratio of the dataset for validation dataset.
-  	trainer.trainUntilConvergence()
+    trainer.trainUntilConvergence()
 
   def setTrainData(train, target):
     ds = SupervisedDataSet(self.num_input, self.num_output)
