@@ -514,7 +514,7 @@ class Predator:
     self.loc += orientation*self.vel
 
     # Update Energy
-    self.consumeEnergy(self.vel)
+    self.consumeEnergy(deltaVel)
 
     '''#for testing
     if self.loc[0] <= 0:
