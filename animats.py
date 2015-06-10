@@ -218,6 +218,8 @@ class Environment:
       self.record(r_list)
       self.timeframe = 0  
 
+    #self.texts('424832')
+
   # The fullowing function record input nodes 
   # two output nodes
   # append captured, left_engery, dis, age at the end
@@ -306,8 +308,9 @@ class Environment:
       f = open(self.filename, 'w')
       pickle.dump(self.predators, f)
       f.close()
+
   def getPrey_Radius():
-    return SPrey.radius()
+    return SPrey.radius() 
 
 
 
