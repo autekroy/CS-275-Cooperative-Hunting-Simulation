@@ -28,7 +28,7 @@ class Simulation:
     # modify pictures to appropriate sizes
     self.pred_sprite   = pygame.transform.scale(self.pred_sprite, (18,18))
     self.bg            = pygame.transform.scale(self.bg, (1000, 700))
-    self.prey          = pygame.transform.scale(self.prey, (14, 14))
+    self.prey          = pygame.transform.scale(self.prey, (18, 18))
 
     self.env = animats.Environment(generation, num_preds, num_preys, width, height, saved_nets)
 
