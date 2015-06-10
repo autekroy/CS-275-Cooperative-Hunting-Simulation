@@ -4,6 +4,7 @@ import sys  # sys.exit()
 import pygame
 import math
 import os
+import svm_learn
 
 class Simulation:
   def __init__(self, generation, num_preds, num_preys, width, height, saved_nets):
@@ -85,6 +86,7 @@ if __name__ == "__main__":
   iter_num = 0
   max_iter = 1
   filename = ""
+  slct_num
 
   if len(sys.argv) > 2:
     filename = "training_data"
@@ -120,25 +122,50 @@ if __name__ == "__main__":
         got_pray = float(data[-4])
         fit = 1000000 * got_pray + 10 * energy + 100/dist + age
         print 'fit is :' + str(fit)
-        if len(fitness)<5: 
+        if len(fitness)<slct_num: 
           fitness.append((iter_num,fit,generation))
           fitness.sort(lambda x,y:cmp(x[1],y[1]))
         elif fitness[0][1] < fit:
           fitness.pop(0)
           fitness.append((iter_num,fit,generation))
           fitness.sort(lambda x,y:cmp(x[1],y[1]))
-<<<<<<< HEAD
-        print fitness
 
-
-=======
->>>>>>> 8faa19c8bccff7b7bf55712e94fe3686ae8821a7
     
         iter_num += 1
         if iter_num < max_iter:
           simulation = Simulation(generation, 3, 1, 1000, 700, filename+'_gen_'+str(generation)+'_iter_'+str(iter_num)+'.csv')
           #add data for train here: Meng Li
 
+
+
+    
+    inp = []
+    sp_oup = []
+    dr_oup = []
+
+    j = 0
+    while j < len(fitness):
+      f = open("training_data"+'_gen_'+str(generation)+'_iter_'+str(fitness[j][0])+'.csv', "r")
+      line = f.readline()
+      while line:
+        trn_data = line.split(",")
+        inp.append([])
+        sp_oup.append([])
+        dr_oup.append([])
+        k = 0
+        while k < 28:
+          inp[len(inp)-1].append(float(trn_data[k]))
+          k += 1
+        while k < 37:
+          sp_oup[len(sp_oup)-1].append(float(trn_data[k]))
+          k += 1
+        while k< 61:
+          dr_oup[len(dr_oup)-1].append(float(trn_data[k]))
+          k += 1
+        line = f.readline()
+      j += 1
+
+    
     generation += 1      
 
 
