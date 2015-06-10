@@ -48,7 +48,8 @@ class NNW:
     # 1. maxEpochs: at most that many epochs are trained. 
     # 2. continueEpochs: Each time validation error hits a minimum, try for continueEpochs epochs to find a better one.
     # 3. validationProportion: ratio of the dataset for validation dataset.
-    print trainer.trainUntilConvergence(maxEpochs = 1000, continueEpochs = 10)
+    error = trainer.trainUntilConvergence(maxEpochs = 1000, continueEpochs = 10)
+    print error
 
   def trainOnce(self, learningRate = 0.05, batch = True, maxEpochs = 100, continueEpochs = 10):
     # http://pybrain.org/docs/api/supervised/trainers.html?highlight=backproptrainer#pybrain.supervised.trainers.BackpropTrainer
@@ -59,7 +60,9 @@ class NNW:
     # 3. batchlearning: True or False
     trainer = BackpropTrainer(self.net, dataset = self.dataset, learningrate = learningRate, batchlearning = batch)
 
-    trainer.train()
+    for i in range(2):
+      error = trainer.train()
+      print i, error
 
 
   def setTrainData(self, train, target):
@@ -89,3 +92,5 @@ class NNW:
     elif laynumber == 2:
           return self.hidden_to_out.params
 
+  def setPara(self, para):
+      self.net._setParameters(para)

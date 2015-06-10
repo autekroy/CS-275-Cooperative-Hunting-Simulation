@@ -313,6 +313,9 @@ class Environment:
   def getPrey_Radius():
     return SPrey.radius() 
 
+  def set_nn_para(self, speed, direct):
+    self.speed_net.setPara(speed)
+    self.dir_net.setPara(direct)
 
 
    
