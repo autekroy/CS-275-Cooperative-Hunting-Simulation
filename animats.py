@@ -197,11 +197,12 @@ class Environment:
       if (deadPrey != None) and (deadPrey not in self.prey_deaths):
         self.prey_deaths.append(deadPrey)
       # DEATH 
-      if pred not in self.pred_deaths and (pred.energy < 0):
+      if pred not in self.pred_deaths and (pred.energy <= 0):
         self.pred_deaths.append(pred)
       count += 1
       cur_res.append(update_info)
- 
+
+    #print len(self.pred_deaths), self.halt
     if len(self.pred_deaths) > 0 or len(self.prey_deaths) > 0:
       self.halt = 1
       nn_out_speed, nn_out_dir = self.filt_with_threshold(nn_out_speed,nn_out_dir,cur_res)
@@ -312,6 +313,9 @@ class Environment:
   def getPrey_Radius():
     return SPrey.radius() 
 
+  def set_nn_para(self, speed, direct):
+    self.speed_net.setPara(speed)
+    self.dir_net.setPara(direct)
 
 
    

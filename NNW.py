@@ -60,8 +60,9 @@ class NNW:
     # 3. batchlearning: True or False
     trainer = BackpropTrainer(self.net, dataset = self.dataset, learningrate = learningRate, batchlearning = batch)
 
-    error = trainer.train()
-    print error
+    for i in range(2):
+      error = trainer.train()
+      print i, error
 
 
   def setTrainData(self, train, target):
@@ -91,3 +92,5 @@ class NNW:
     elif laynumber == 2:
           return self.hidden_to_out.params
 
+  def setPara(self, para):
+      self.net._setParameters(para)

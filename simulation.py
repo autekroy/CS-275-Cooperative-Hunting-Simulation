@@ -46,6 +46,9 @@ class Simulation:
     text=font.render(str(score), 1,(0,0,0))
     self.screen.blit(text, (30, 30+int(line)*15)) 
 
+  def set_nn_para(self, speed_para, dir_para):
+    self.env.set_nn_para(speed_para,dir_para)
+
   def update(self, speed):
     # update model a certain number of times
     for i in range(speed):
@@ -81,32 +84,24 @@ class Simulation:
 
 def get_last_line(file):
   f = open(file,'r')
-  line1 = None
-  line2 = f.readline()
-  while line2:
-    line1 = line2
-    line2 = f.readline()
-  return line1
-
-
-
-#before main 
-#need to read and train data at the very beginning using ./sample/data/ Yao-Jen
-
-
+  for line in f:
+    pass
+  return line
 
 if __name__ == "__main__":
 
   sampleTrain, sampleTarget1, sampleTarget2 = readData("sample/data")
 
-  sample_seed_net = NNW.NNW(28,24,9)
+  sample_speed_net = NNW.NNW(28,24,9)
   sample_dir_net = NNW.NNW(28,38,24)
 
-  sample_seed_net.setTrainData(sampleTrain, sampleTarget1)
+  sample_speed_net.setTrainData(sampleTrain, sampleTarget1)
   sample_dir_net.setTrainData(sampleTrain, sampleTarget2)
 
-  sample_seed_net.trainData()
-  sample_dir_net.trainData()
+  sample_speed_net.trainOnce()
+  sample_dir_net.trainOnce()
+  speed_para = sample_speed_net.parameter()
+  dir_para = sample_dir_net.parameter()
   
   # load save state from file
   fitness = []
@@ -127,7 +122,7 @@ if __name__ == "__main__":
     del fitness[:]
     iter_num = 0
     simulation = Simulation(generation, 3, 1, 1000, 700, filename+'_gen_'+str(generation)+'_iter_'+str(iter_num)+'.csv')
-  
+    simulation.set_nn_para(speed_para,dir_para)
     # main loop
     while iter_num < max_iter: 
       for event in pygame.event.get():
@@ -141,6 +136,7 @@ if __name__ == "__main__":
           sys.exit()
           
       simulation.update(1)
+      #print simulation.ifend()
       if simulation.ifend() == 1:
         data = get_last_line("training_data"+'_gen_'+str(generation)+'_iter_'+str(iter_num)+'.csv').split(",")
         age = int(data[-1])
@@ -162,10 +158,10 @@ if __name__ == "__main__":
         iter_num += 1
         if iter_num < max_iter:
           simulation = Simulation(generation, 3, 1, 1000, 700, filename+'_gen_'+str(generation)+'_iter_'+str(iter_num)+'.csv')
+          simulation.set_nn_para(speed_para,dir_para)
 
 
-
-    
+    '''
     inp = []
     sp_oup = []
     dr_oup = []
@@ -195,7 +191,7 @@ if __name__ == "__main__":
       NN_inp = [tuple(l) for l in inp]
       NN_sp_oup = [tuple(l) for l in sp_oup]
       NN_dr_oup = [tuple(l) for l in dr_oup]
-
+    '''
     
     generation += 1      
 
