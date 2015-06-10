@@ -81,19 +81,9 @@ class Simulation:
 
 def get_last_line(file):
   f = open(file,'r')
-  line1 = None
-  line2 = f.readline()
-  while line2:
-    line1 = line2
-    line2 = f.readline()
-  return line1
-
-
-
-#before main 
-#need to read and train data at the very beginning using ./sample/data/ Yao-Jen
-
-
+  for line in f:
+    pass
+  return line
 
 if __name__ == "__main__":
 
@@ -141,6 +131,7 @@ if __name__ == "__main__":
           sys.exit()
           
       simulation.update(1)
+      #print simulation.ifend()
       if simulation.ifend() == 1:
         data = get_last_line("training_data"+'_gen_'+str(generation)+'_iter_'+str(iter_num)+'.csv').split(",")
         age = int(data[-1])
@@ -165,7 +156,7 @@ if __name__ == "__main__":
 
 
 
-    
+    '''
     inp = []
     sp_oup = []
     dr_oup = []
@@ -195,7 +186,7 @@ if __name__ == "__main__":
       NN_inp = [tuple(l) for l in inp]
       NN_sp_oup = [tuple(l) for l in sp_oup]
       NN_dr_oup = [tuple(l) for l in dr_oup]
-
+    '''
     
     generation += 1      
 
