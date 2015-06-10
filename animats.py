@@ -81,6 +81,7 @@ class Environment:
         a = Predator.Predator(pos[0], pos[1], generation)
         a.generation = 1
       self.predators.append(a)
+      
     #---------Neural Network----------#
     #-- Method 1 ---------------------#
     #-- Initial Stage ----------------#

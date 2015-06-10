@@ -70,13 +70,17 @@ def get_last_line(file):
     line2 = f.readline()
   return line1
 
-fitness = []
 
+
+#before main 
+#need to read and train data at the very beginning using ./sample/data/ Yao-Jen
 
 
 
 if __name__ == "__main__":
   # load save state from file
+  fitness = []
+  
   generation = 0
   iter_num = 0
   max_iter = 1
@@ -84,15 +88,12 @@ if __name__ == "__main__":
 
   if len(sys.argv) > 2:
     filename = "training_data"
-    generations = int(sys.argv[1])
-    max_iter = int(sys.argv[2])
+    generationsNum = int(sys.argv[1]) # generation number 
+    max_iter = int(sys.argv[2])    # iteration number
 
-  while generation < generations:
+  while generation < generationsNum:
 
-    j = 0
-    while j < len(fitness):
-      fitness.pop()
-      j += 1;
+    del fitness[:]
 
     simulation = Simulation(generation, 3, 1, 1000, 700, filename+'_gen_'+str(generation)+'_iter_'+str(iter_num)+'.csv')
   
@@ -107,6 +108,7 @@ if __name__ == "__main__":
           map(lambda r: fLog.write( str(r) + '\n'), simulation.env.log)
           fLog.close()
           sys.exit()
+          
       simulation.update(1)
       if simulation.ifend() == 1:
         data = get_last_line("training_data"+'_gen_'+str(generation)+'_iter_'+str(iter_num)+'.csv').split(",")
@@ -125,13 +127,17 @@ if __name__ == "__main__":
           fitness.pop(0)
           fitness.append((iter_num,fit,generation))
           fitness.sort(lambda x,y:cmp(x[1],y[1]))
+<<<<<<< HEAD
         print fitness
 
 
+=======
+>>>>>>> 8faa19c8bccff7b7bf55712e94fe3686ae8821a7
     
         iter_num += 1
         if iter_num < max_iter:
           simulation = Simulation(generation, 3, 1, 1000, 700, filename+'_gen_'+str(generation)+'_iter_'+str(iter_num)+'.csv')
+          #add data for train here: Meng Li
 
     generation += 1      
 
