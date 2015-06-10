@@ -134,7 +134,6 @@ if __name__ == "__main__":
         iter_num += 1
         if iter_num < max_iter:
           simulation = Simulation(generation, 3, 1, 1000, 700, filename+'_gen_'+str(generation)+'_iter_'+str(iter_num)+'.csv')
-          #add data for train here: Meng Li
 
 
 
