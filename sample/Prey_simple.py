@@ -34,14 +34,14 @@ def limit(v, lim):
   return np.multiply(normalize(v), lim)
 
 class Prey_simple:
-  radius = 7
+  radius = 9
   def __init__(self, x, y):
     self.loc = np.array([float(x), float(y)])
     self.vel = np.array([0., 0.])
     self.force = np.array([0., 0.])
     self.maxForce = 50/scale # 40mph
     self.mass = 723 # 723.1lb
-    self.repelRadius = 100
+    self.repelRadius = 120
     self.status = 0
   
   def update(self, preys, preds):

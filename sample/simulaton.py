@@ -3,6 +3,7 @@ import animats
 import sys  # sys.exit()
 import pygame
 import math
+from time import sleep
 
 class Simulation:
   def __init__(self, generation, num_preds, num_preys, width, height, saved_nets):
@@ -33,7 +34,14 @@ class Simulation:
     self.env = animats.Environment(generation, num_preds, num_preys, width, height, saved_nets)
 
   def ifend(self):
+    if (self.env.end_iteration()):
+      sleep(1.5)
     return self.env.end_iteration()
+
+  def texts(self, score, line, font_size):
+    font=pygame.font.Font(None,font_size)
+    text=font.render(str(score), 1,(0,0,0))
+    self.screen.blit(text, (30, 30+int(line)*15)) 
 
   def update(self, speed):
     # update model a certain number of times
@@ -53,7 +61,16 @@ class Simulation:
     # paint predator
     for pred in self.env.predators:
       self.screen.blit(pygame.transform.rotate(self.pred_sprite, 360), (pred.loc[0] - pred.radius, pred.loc[1] - pred.radius))
-
+    
+    # paint text
+    count = 0
+    for pred in self.env.predators:
+      self.texts("PREDATOR " + str(count+1), count*5, 20)
+      self.texts("  state: " + pred.direction_text, count*5 + 1, 20)
+      self.texts("  direction: " + pred.speed_text, count*5 + 2, 20)
+      self.texts("  energy: " + str(pred.energy), count*5 + 3, 20)
+      count += 1
+    
     pygame.display.flip()
 
 if __name__ == "__main__":
