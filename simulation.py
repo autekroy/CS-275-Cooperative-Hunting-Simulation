@@ -92,11 +92,6 @@ if __name__ == "__main__":
 
   sample_seed_net.trainData()
   sample_dir_net.trainData()
-
-
-
-
-
   
   # load save state from file
   fitness = []
