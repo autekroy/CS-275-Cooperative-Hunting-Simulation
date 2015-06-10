@@ -1,3 +1,33 @@
+from readFile import *
+import NNW
+from pybrain.structure import RecurrentNetwork, FeedForwardNetwork, LinearLayer, SigmoidLayer, FullConnection
+
+sampleTrain, sampleTarget1, sampleTarget2 = readData("sample/data")
+
+sample_seed_net = NNW.NNW(28,24,9)
+sample_dir_net = NNW.NNW(28,38,24)
+
+sampleTrain, sampleTarget1, sampleTarget2 = readData("sample/data")
+
+sample_seed_net = NNW.NNW(28,24,9)
+sample_dir_net = NNW.NNW(28,38,24)
+
+sample_seed_net.setTrainData(sampleTrain, sampleTarget1)
+sample_dir_net.setTrainData(sampleTrain, sampleTarget2)
+
+sample_seed_net.parameter()
+sample_dir_net.parameter()
+
+
+sample_seed_net.trainOnce()
+sample_dir_net.trainOnce()
+
+sample_seed_net.trainData()
+sample_dir_net.trainData()
+
+
+
+
 import numpy
 from pybrain.tools.shortcuts import buildNetwork
 from pybrain.structure import RecurrentNetwork, FeedForwardNetwork, LinearLayer, SigmoidLayer, FullConnection
