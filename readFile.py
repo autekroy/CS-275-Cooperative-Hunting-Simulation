@@ -1,5 +1,5 @@
 
-
+import math
 # From --------------------------------------------------
 # UCLA CS 260 - Machine Learning Algorithm
 # Yao-Jen Chang, 2015 @UCLA
@@ -56,6 +56,18 @@ def readcsvData(filePath):
 	while row:
 		row = row.replace("\n", "")
 		data = row.split(',')
+		for i in range(3):
+			data[i*9+0] = float(data[i*9+0])/10
+			data[i*9+1] = float(data[i*9+0])/1000
+			v_len = math.sqrt(float(data[i*9+3])**2 + float(data[i*9+4])**2)
+			data[i*9+3] = float(data[i*9+3]) / v_len
+			data[i*9+4] = float(data[i*9+4]) / v_len
+			v_len = math.sqrt(float(data[i*9+5])**2 + float(data[i*9+6])**2)
+			data[i*9+5] = float(data[i*9+5]) / v_len
+			data[i*9+6] = float(data[i*9+6]) / v_len
+			v_len = math.sqrt(float(data[i*9+7])**2 + float(data[i*9+8])**2)
+			data[i*9+7] = float(data[i*9+7]) / v_len
+			data[i*9+8] = float(data[i*9+8]) / v_len
 		inputSample.append(tuple(data[0:28]))
 		target1Sample.append(tuple(data[28:37]))
 		target2Sample.append(tuple(data[37:61]))

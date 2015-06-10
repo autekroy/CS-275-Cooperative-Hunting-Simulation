@@ -110,7 +110,7 @@ if __name__ == "__main__":
   while generation < generationsNum:
 
     del fitness[:]
-
+    iter_num = 0
     simulation = Simulation(generation, 3, 1, 1000, 700, filename+'_gen_'+str(generation)+'_iter_'+str(iter_num)+'.csv')
   
     # main loop

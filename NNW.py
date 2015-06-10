@@ -59,7 +59,7 @@ class NNW:
     # 3. batchlearning: True or False
     trainer = BackpropTrainer(self.net, dataset = self.dataset, learningrate = learningRate, batchlearning = batch)
 
-    print trainer.train()
+    trainer.train()
 
 
   def setTrainData(self, train, target):
