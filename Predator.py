@@ -49,9 +49,10 @@ class Predator:
     self.vel = 1.0
     self.acc = 0.1
     self.direction = Direction.N
+    self.direction_text = "N"
     self.speed = Speed.up
-    self.maxSpeed = 50/scale # 49.7 mph
-    
+    self.speed_text = "speed up"
+    self.maxSpeed = 50/scale # 49.7 mph 
 
     self.mass = 440 # 441lb
     self.captureRadius = 10
@@ -86,29 +87,40 @@ class Predator:
     orientation = np.array([0., 0.])
     if self.direction == 0:
       orientation = np.array([0., -1.0])
+      self.direction_text = "N"
     elif self.direction == 1:
       orientation = np.array([1.0, -1.0])
+      self.direction_text = "NE"
     elif self.direction == 2:
       orientation = np.array([1.0, 0.])
+      self.direction_text = "E"
     elif self.direction == 3:
       orientation = np.array([1.0, 1.0])
+      self.direction_text = "SE"
     elif self.direction == 4:
       orientation = np.array([0., 1.0])
+      self.direction_text = "S"
     elif self.direction == 5:
       orientation = np.array([-1.0, 1.0])
+      self.direction_text = "SW"
     elif self.direction == 6:
       orientation = np.array([-1.0, 0.])
+      self.direction_text = "W"
     elif self.direction == 7:
       orientation = np.array([-1.0, -1.0])
+      self.direction_text = "NW"
     orientation = normalize(orientation)
 
     # Update Acc
     if self.speed == 0:
       self.acc = 10/scale
+      self.speed_text = "speed up"
     elif self.speed == -1:
       self.acc = -20/scale
+      self.speed_text = "slow down"
     elif self.speed == 1:
       self.acc = 0
+      self.speed_text = "maintain"
 
     # Update Speed
     deltaVel = self.vel
@@ -131,6 +143,8 @@ class Predator:
 
   def consumeEnergy(self, v):
     self.energy -= v
+    if self.energy < 0:
+      self.energy = 0
 
   # returns a child with a genetic combination of neural net weights of 2 parents
   def mate(self, other):

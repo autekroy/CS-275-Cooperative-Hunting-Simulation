@@ -41,6 +41,11 @@ class Simulation:
   def ifend(self):
     return self.env.end_iteration()
 
+  def texts(self, score, line, font_size):
+    font=pygame.font.Font(None,font_size)
+    text=font.render(str(score), 1,(0,0,0))
+    self.screen.blit(text, (30, 30+int(line)*15)) 
+
   def update(self, speed):
     # update model a certain number of times
     for i in range(speed):
@@ -59,6 +64,16 @@ class Simulation:
     # paint predator
     for pred in self.env.predators:
       self.screen.blit(pygame.transform.rotate(self.pred_sprite, 360), (pred.loc[0] - pred.radius, pred.loc[1] - pred.radius))
+
+    # paint text
+    count = 0
+    for pred in self.env.predators:
+      self.texts("PREDATOR " + str(count+1), count*6, 20)
+      self.texts("  state: " + pred.speed_text, count*6 + 1, 20)
+      self.texts("  direction: " + pred.direction_text, count*6 + 2, 20)
+      self.texts("  speed: " + str(pred.vel*5), count*6 + 3, 20)
+      self.texts("  energy: " + str(pred.energy), count*6 + 4, 20)
+      count += 1
 
     pygame.display.flip()
 
