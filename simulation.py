@@ -70,7 +70,8 @@ def get_last_line(file):
     line2 = f.readline()
   return line1
 
-fitness = []
+selected = []
+
 
 
 
@@ -89,8 +90,8 @@ if __name__ == "__main__":
   while generation < generations:
 
     j = 0
-    while j < len(fitness):
-      fitness.pop()
+    while j < len(selected):
+      selected.pop()
       j += 1;
 
     simulation = Simulation(generation, 3, 1, 1000, 700, filename+str(iter_num)+'.csv')
@@ -115,14 +116,14 @@ if __name__ == "__main__":
         if energy < 0.0:
           energy = 0.0
         got_pray = float(data[-4])
-        fit = 1000000 * got_pray + 10000 * energy + 100/dist + age
-        if len(fitness)<5: 
-          fitness.append((iter_num,fit))
-          fitness.sort(lambda x,y:cmp(x[1],y[1]))
-        elif fitness[0][1] < fit:
-          fitness.pop(0)
-          fitness.append((iter_num,fit))
-          fitness.sort(lambda x,y:cmp(x[1],y[1]))
+        fit = 1000000 * got_pray + 1000 * energy + 100/dist + age
+        if len(selected)<5: 
+          selected.append((iter_num,fit))
+          selected.sort(lambda x,y:cmp(x[1],y[1]))
+        elif selected[0][1] < fit:
+          selected.pop(0)
+          selected.append((iter_num,fit))
+          selected.sort(lambda x,y:cmp(x[1],y[1]))
       
 
     

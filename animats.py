@@ -108,6 +108,8 @@ class Environment:
     input_vals.append(self.preys[0].status)
     return input_vals
 
+
+
   def findSpace(self, count, placeRadius, noCoverDegree, AnimateRadius):
     degree = random.randrange(noCoverDegree , 360.0/self.num_predator - noCoverDegree)  # random degree
     degree = degree + count * 360.0/self.num_predator
