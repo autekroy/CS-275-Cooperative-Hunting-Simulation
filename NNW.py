@@ -34,11 +34,6 @@ class NNW:
 
     self.dataset = None
 
-
-    # len(self.net.params)
-    # len(in_to_hidden.params)
-    # len(hidden_to_out.params)
-
   def train(self, learningRate = 0.1, batch = True, maxEpochs = 100, continueEpochs = 10):
     # http://pybrain.org/docs/api/supervised/trainers.html?highlight=backproptrainer#pybrain.supervised.trainers.BackpropTrainer
     # BackpropTrainer(module, dataset=None, learningrate=0.01, lrdecay=1.0, momentum=0.0, verbose=False, batchlearning=False, weightdecay=0.0)
@@ -46,7 +41,7 @@ class NNW:
     # 1. dataset
     # 2. learningrate: 0.01 ~ 0.25
     # 3. batchlearning: True or False
-    trainer = BackpropTrainer(net, self.dataset, learningRate, batch)
+    trainer = BackpropTrainer(self.net, self.dataset, learningRate, batch)
 
     # trainUntilConvergence(dataset=None, maxEpochs=None, verbose=None, continueEpochs=10, validationProportion=0.25)
     # things for setting:
@@ -55,18 +50,11 @@ class NNW:
     # 3. validationProportion: ratio of the dataset for validation dataset.
     trainer.trainUntilConvergence()
 
-  def setTrainData(train, target):
+  def setTrainData(self, train, target):
     ds = SupervisedDataSet(self.num_input, self.num_output)
     dataSize = len(train) # should be same as len(target)
-    
-    # example
-    # ds.addSample((0, 0), (0,))
-    # ds.addSample((0, 1), (1,))
-    # ds.addSample((1, 0), (1,))
-    # ds.addSample((1, 1), (0,))
     for i in range(dataSize):
       ds.addSample(train[i], target[i])
-
     self.dataset = ds
 
 
