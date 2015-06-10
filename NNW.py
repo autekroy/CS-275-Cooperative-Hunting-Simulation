@@ -51,6 +51,12 @@ class NNW:
     trainer.trainUntilConvergence()
 
   def setTrainData(self, train, target):
+    # ds = SupervisedDataSet(2, 1)
+    # ds.addSample((0, 0), (0,))
+    # ds.addSample((0, 1), (1,))
+    # ds.addSample((1, 0), (1,))
+    # ds.addSample((1, 1), (0,))
+
     ds = SupervisedDataSet(self.num_input, self.num_output)
     dataSize = len(train) # should be same as len(target)
     for i in range(dataSize):

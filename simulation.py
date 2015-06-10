@@ -4,6 +4,7 @@ import sys  # sys.exit()
 import pygame
 import math
 import os
+from readFile import *
 
 class Simulation:
   def __init__(self, generation, num_preds, num_preys, width, height, saved_nets):
@@ -77,6 +78,10 @@ def get_last_line(file):
 
 
 if __name__ == "__main__":
+
+
+
+  
   # load save state from file
   fitness = []
   
