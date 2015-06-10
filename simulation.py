@@ -5,6 +5,8 @@ import pygame
 import math
 import os
 from readFile import *
+import svm_learn
+import NNW
 
 class Simulation:
   def __init__(self, generation, num_preds, num_preys, width, height, saved_nets):
@@ -77,7 +79,21 @@ def get_last_line(file):
 #need to read and train data at the very beginning using ./sample/data/ Yao-Jen
 
 
+
 if __name__ == "__main__":
+
+  sampleTrain, sampleTarget1, sampleTarget2 = readData("sample/data")
+
+  sample_seed_net = NNW.NNW(28,24,9)
+  sample_dir_net = NNW.NNW(28,38,24)
+
+  sample_seed_net.setTrainData(sampleTrain, sampleTarget1)
+  sample_dir_net.setTrainData(sampleTrain, sampleTarget2)
+
+  sample_seed_net.trainData()
+  sample_dir_net.trainData()
+
+
 
 
 
@@ -89,6 +105,7 @@ if __name__ == "__main__":
   iter_num = 0
   max_iter = 1
   filename = ""
+  slct_num
 
   if len(sys.argv) > 2:
     filename = "training_data"
@@ -124,12 +141,12 @@ if __name__ == "__main__":
         got_pray = float(data[-4])
         fit = 1000000 * got_pray + 10 * energy + 100/dist + age
         print 'fit is :' + str(fit)
-        if len(fitness)<5: 
-          fitness.append((iter_num,fit))
+        if len(fitness)<slct_num: 
+          fitness.append((iter_num,fit,generation))
           fitness.sort(lambda x,y:cmp(x[1],y[1]))
         elif fitness[0][1] < fit:
           fitness.pop(0)
-          fitness.append((iter_num,fit))
+          fitness.append((iter_num,fit,generation))
           fitness.sort(lambda x,y:cmp(x[1],y[1]))
     
         iter_num += 1
@@ -137,6 +154,40 @@ if __name__ == "__main__":
           simulation = Simulation(generation, 3, 1, 1000, 700, filename+'_gen_'+str(generation)+'_iter_'+str(iter_num)+'.csv')
           #add data for train here: Meng Li
 
+
+
+    
+    inp = []
+    sp_oup = []
+    dr_oup = []
+
+    j = 0
+    while j < len(fitness):
+      f = open("training_data"+'_gen_'+str(generation)+'_iter_'+str(fitness[j][0])+'.csv', "r")
+      line = f.readline()
+      while line:
+        trn_data = line.split(",")
+        inp.append([])
+        sp_oup.append([])
+        dr_oup.append([])
+        k = 0
+        while k < 28:
+          inp[len(inp)-1].append(float(trn_data[k]))
+          k += 1
+        while k < 37:
+          sp_oup[len(sp_oup)-1].append(float(trn_data[k]))
+          k += 1
+        while k< 61:
+          dr_oup[len(dr_oup)-1].append(float(trn_data[k]))
+          k += 1
+        line = f.readline()
+      j += 1
+
+      NN_inp = [tuple(l) for l in inp]
+      NN_sp_oup = [tuple(l) for l in sp_oup]
+      NN_dr_oup = [tuple(l) for l in dr_oup]
+
+    
     generation += 1      
 
 

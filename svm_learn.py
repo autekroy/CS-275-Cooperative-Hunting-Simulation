@@ -17,17 +17,9 @@ from sklearn.multiclass import OneVsRestClassifier
  zibra 2 behavior
 '''
 
-def train(training):
-	size = len(training[0])
-	situations = []
-	behaviors = []
-	i = 0
-	while i < len(training):
-		situations.append(training[i][0:size-1])
-		behaviors.append(training[i][size-1])
-		i+=1
-	X = np.array(situations)
-	y = np.array(behaviors)
+def train(inp, outp):
+	X = np.array(inp)
+	y = np.array(outp)
 	clf = OneVsRestClassifier(SVC(kernel='poly', degree=3))
 	clf.fit(X,y)
 	return clf

@@ -90,6 +90,10 @@ class Environment:
     #-- Second Network --: Direction -#
     self.dir_net = NNW.NNW(28,38,24)
     #---------------------------------#
+  def set_NN_para(self, speedPara, dirPara):
+    self.speed_net._setParameters(speedPara)
+    self.dir_net._setParameters(dirPara)
+
 
   def end_iteration(self):
     return self.halt
@@ -108,6 +112,8 @@ class Environment:
       input_vals.append(loc[1])
     input_vals.append(self.preys[0].status)
     return input_vals
+
+
 
   def findSpace(self, count, placeRadius, noCoverDegree, AnimateRadius):
     degree = random.randrange(noCoverDegree , 360.0/self.num_predator - noCoverDegree)  # random degree
