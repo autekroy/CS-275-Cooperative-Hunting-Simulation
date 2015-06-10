@@ -105,12 +105,34 @@ if __name__ == "__main__":
   
   # load save state from file
   fitness = []
-  
+
   generation = 0
   iter_num = 0
   max_iter = 1
   filename = ""
-  slct_num = 5
+  slct_num = 12
+
+
+  i1 = 0
+  while i1 < 10:
+    data = get_last_line("training_data"+'_gen_'+str(0)+'_iter_'+str(i1)+'.csv').split(",")
+    age = int(data[-1])
+    dist = float(data[-2])
+    energy = float(data[-3])
+    if energy < 0.0:
+      energy = 0.0
+    got_pray = float(data[-4])
+    fit = 1000000 * got_pray + 10 * energy + 100/dist + age
+    print 'fit is :' + str(fit)
+    if len(fitness)<slct_num: 
+      fitness.append((iter_num,fit,generation))
+      fitness.sort(lambda x,y:cmp(x[1],y[1]))
+    elif fitness[0][1] < fit:
+      fitness.pop(0)
+      fitness.append((iter_num,fit,generation))
+      fitness.sort(lambda x,y:cmp(x[1],y[1]))
+    i1 += 1
+
 
   if len(sys.argv) > 2:
     filename = "training_data"
@@ -119,8 +141,10 @@ if __name__ == "__main__":
 
   while generation < generationsNum:
 
-    del fitness[:]
-    iter_num = 0
+    if generation == 0: 
+      iter_num = 10
+    else:
+      iter_num = 0
     simulation = Simulation(generation, 3, 1, 1000, 700, filename+'_gen_'+str(generation)+'_iter_'+str(iter_num)+'.csv')
     simulation.set_nn_para(speed_para,dir_para)
     # main loop
@@ -161,7 +185,7 @@ if __name__ == "__main__":
           simulation.set_nn_para(speed_para,dir_para)
 
 
-    '''
+    
     inp = []
     sp_oup = []
     dr_oup = []
@@ -175,6 +199,18 @@ if __name__ == "__main__":
         inp.append([])
         sp_oup.append([])
         dr_oup.append([])
+        for i in range(3):
+          trn_data[i*9+0] = float(trn_data[i*9+0])/10
+          trn_data[i*9+1] = float(trn_data[i*9+0])/1000
+          v_len = math.sqrt(float(trn_data[i*9+3])**2 + float(trn_data[i*9+4])**2)
+          trn_data[i*9+3] = float(trn_data[i*9+3]) / v_len
+          trn_data[i*9+4] = float(trn_data[i*9+4]) / v_len
+          v_len = math.sqrt(float(trn_data[i*9+5])**2 + float(trn_data[i*9+6])**2)
+          trn_data[i*9+5] = float(trn_data[i*9+5]) / v_len
+          trn_data[i*9+6] = float(trn_data[i*9+6]) / v_len
+          v_len = math.sqrt(float(trn_data[i*9+7])**2 + float(trn_data[i*9+8])**2)
+          trn_data[i*9+7] = float(trn_data[i*9+7]) / v_len
+          trn_data[i*9+8] = float(trn_data[i*9+8]) / v_len
         k = 0
         while k < 28:
           inp[len(inp)-1].append(float(trn_data[k]))
@@ -191,7 +227,20 @@ if __name__ == "__main__":
       NN_inp = [tuple(l) for l in inp]
       NN_sp_oup = [tuple(l) for l in sp_oup]
       NN_dr_oup = [tuple(l) for l in dr_oup]
-    '''
+
+      sp_nnw = NNW.NNW(28,24,9)
+      dr_nnw = NNW.NNW(28,38,24)
+
+      sp_nnw.setTrainData(NN_inp, NN_sp_oup)
+      dr_nnw.setTrainData(NN_inp, NN_dr_oup)
+
+      sp_nnw.trainData()
+      dr_nnw.trainData()
+
+      speed_para = sp_nnw.parameter()
+      dir_para = dr_nnw.parameter()
+
+
     
     generation += 1      
 
