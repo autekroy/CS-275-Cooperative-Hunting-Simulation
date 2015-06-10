@@ -12,6 +12,7 @@
 !*.ppt
 !*.pdf
 !*.docx
+!*.csv
 
 # sub-directories
 !*/
