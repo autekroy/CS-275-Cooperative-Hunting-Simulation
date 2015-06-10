@@ -170,6 +170,7 @@ class Environment:
 
     # get the result from NNW
     input_vals = self.getNNWInput()
+
     nn_out_speed = self.speed_net.activate(input_vals)
     nn_out_dir = self.dir_net.activate(input_vals)
 

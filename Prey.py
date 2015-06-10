@@ -33,7 +33,7 @@ def limit(v, lim):
 
   
 class Prey:
-  radius = 7
+  radius = 9
   def __init__(self, x, y):
     self.loc = np.array([float(x), float(y)])
     self.vel = np.array([0., 0.])
