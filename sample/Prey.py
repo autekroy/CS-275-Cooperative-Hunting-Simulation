@@ -40,7 +40,7 @@ class Prey:
     self.acc = np.array([0., 0.])
     self.maxForce = 3 # 40mph
     self.mass = 10 # 723.1lb
-    self.repelRadius = 100
+    self.repelRadius = 150
     self.status = 0
   
   def update(self, preys, preds):

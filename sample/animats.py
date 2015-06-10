@@ -221,7 +221,7 @@ class Environment:
     r_list = list(input_vals) + list(nn_out_speed) + list(nn_out_dir)
     self.update_cotarget()
     self.timeframe += 1
-    if self.timeframe >= 5:
+    if self.timeframe >= 1:
       self.record(r_list)
       self.timeframe = 0  
 
