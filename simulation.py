@@ -70,12 +70,14 @@ def get_last_line(file):
     line2 = f.readline()
   return line1
 
-fitness = []
+
 
 
 
 if __name__ == "__main__":
   # load save state from file
+  fitness = []
+  
   generation = 0
   iter_num = 0
   max_iter = 1
@@ -83,10 +85,10 @@ if __name__ == "__main__":
 
   if len(sys.argv) > 2:
     filename = "training_data"
-    generations = int(sys.argv[1])
-    max_iter = int(sys.argv[2])
+    generationsNum = int(sys.argv[1]) # generation number 
+    max_iter = int(sys.argv[2])    # iteration number
 
-  while generation < generations:
+  while generation < generationsNum:
 
     j = 0
     while j < len(fitness):
@@ -106,6 +108,7 @@ if __name__ == "__main__":
           map(lambda r: fLog.write( str(r) + '\n'), simulation.env.log)
           fLog.close()
           sys.exit()
+          
       simulation.update(1)
       if simulation.ifend() == 1:
         data = get_last_line("training_data"+str(iter_num)+'.csv').split(",")
