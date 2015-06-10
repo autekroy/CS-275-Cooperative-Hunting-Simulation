@@ -81,7 +81,6 @@ class Environment:
         a = Predator.Predator(pos[0], pos[1], generation)
         a.generation = 1
       self.predators.append(a)
-      
     #---------Neural Network----------#
     #-- Method 1 ---------------------#
     #-- Initial Stage ----------------#
@@ -155,6 +154,18 @@ class Environment:
           l2[i*8+j] = 0.0
     return l1,l2
 
+  def sample_output(self):
+    l1 = [1,0,0,1,0,0,1,0,0]
+    l2 = [0]*24
+    count = 0
+    for pred in self.predators:
+      l2[count*8+pred.direction] = 1
+      count += 1
+
+    return l1,l2
+
+
+
   def update(self):
     # check if dead
     while len(self.pred_deaths ) > 0:
@@ -172,7 +183,6 @@ class Environment:
 
     # get the result from NNW
     input_vals = self.getNNWInput()
-
     nn_out_speed = self.speed_net.activate(input_vals)
     nn_out_dir = self.dir_net.activate(input_vals)
 
@@ -199,17 +209,19 @@ class Environment:
  
     if len(self.pred_deaths) > 0 or len(self.prey_deaths) > 0:
       self.halt = 1
-      nn_out_speed, nn_out_dir = self.filt_with_threshold(nn_out_speed,nn_out_dir,cur_res)
+      #nn_out_speed, nn_out_dir = self.filt_with_threshold(nn_out_speed,nn_out_dir,cur_res)
+      nn_out_speed, nn_out_dir = self.sample_output()
       r_list = list(input_vals) + list(nn_out_speed) + list(nn_out_dir)
       self.record(r_list)
       self.file_fp.close()
       return
 
-    nn_out_speed, nn_out_dir = self.filt_with_threshold(nn_out_speed,nn_out_dir,cur_res)
+    #nn_out_speed, nn_out_dir = self.filt_with_threshold(nn_out_speed,nn_out_dir,cur_res)
+    nn_out_speed, nn_out_dir = self.sample_output()
     r_list = list(input_vals) + list(nn_out_speed) + list(nn_out_dir)
     self.update_cotarget()
     self.timeframe += 1
-    if self.timeframe >= 5:
+    if self.timeframe >= 1:
       self.record(r_list)
       self.timeframe = 0  
 

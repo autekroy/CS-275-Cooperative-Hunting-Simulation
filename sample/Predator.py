@@ -2,6 +2,7 @@ import random
 import math
 from enum import Enum
 import numpy as np
+import sys
 
 scale = 5.0
 Default_Engery = 1000
@@ -48,8 +49,8 @@ class Predator:
     self.loc = np.array([float(x), float(y)])
     self.prevLoc = np.array([float(x), float(y)])
     # velocity
-    self.vel = 1.0
-    self.acc = 0.1
+    self.vel = 0.0
+    self.acc = 0.0
     self.direction = Direction.N
     self.speed = Speed.up
     self.maxSpeed = 50/scale # 49.7 mph
@@ -90,12 +91,12 @@ class Predator:
 
   def update(self, predators, preys, info):
     #print str(self.state) + ' : ' + str(self.vel)
-    #self.PredForce( preys, predators )
+    self.PredForce( preys, predators )
     #self.vel += self.acc
     #self.loc += self.vel
     #self.acc = np.array([0., 0.])
-    self.direction = info[1]
-    self.speed = info[0]
+    #self.direction = info[1]
+    self.speed = 0
     self.state = self.speed
     # Update Direction
     orientation = np.array([0., 0.])
@@ -117,13 +118,12 @@ class Predator:
       orientation = np.array([-1.0, -1.0])
     orientation = normalize(orientation)
 
-
     # Update Acc
-    if self.speed == Speed.up:
+    if self.speed == 0:
       self.acc = 10/scale
-    elif self.speed == Speed.down:
+    elif self.speed == -1:
       self.acc = -20/scale
-    elif self.speed == Speed.maintain:
+    elif self.speed == 1:
       self.acc = 0
 
     # Update Speed
@@ -180,7 +180,7 @@ class Predator:
     # F = ma (a = F/m)
     a = force / self.mass
     self.acc += a
-
+  '''
   def approachForce(self, preys):
     count = 0
     approachRadius = self.mass + 260
@@ -204,13 +204,37 @@ class Predator:
 
     #approach the closest prey
     if self.target_idx != -1 and len(preys) > 0: 
+      
       approachVec = preys[self.target_idx].loc - self.loc
       approachVec = normalize(approachVec)
-      approachVec *= self.maxForce*2
-      #approachVec = self.updateForce(approachVec)
-      #approachVec = self.updateEngery(approachVec)
-      self.applyF(approachVec)
+      min_dot = -100
+      
+      if np.dot(approachVec, np.array([0., -1.0])) > min_dot:
+        min_dot = np.dot(approachVec, np.array([0., -1.0]))
+        self.direction = 0
+      if np.dot(approachVec, normalize(np.array([1.0, -1.0]))) > min_dot:
+        min_dot = np.dot(approachVec, normalize(np.array([1.0, -1.0])))
+        self.direction = 1
+      if np.dot(approachVec, np.array([1.0, 0.])) > min_dot:
+        min_dot = np.dot(approachVec, np.array([1.0, 0.]))
+        self.direction = 2
+      if np.dot(approachVec, normalize(np.array([1.0, 1.0]))) > min_dot:
+        min_dot = np.dot(approachVec, normalize(np.array([1.0, 1.0])))
+        self.direction = 3
+      if np.dot(approachVec, np.array([0., 1.0])) > min_dot:
+        min_dot = np.dot(approachVec, np.array([0., 1.0]))
+        self.direction = 4
+      if np.dot(approachVec, normalize(np.array([-1.0, 1.0]))) > min_dot:
+        min_dot = np.dot(approachVec, normalize(np.array([-1.0, 1.0])))
+        self.direction = 5
+      if np.dot(approachVec, np.array([-1.0, 0.])) > min_dot:
+        min_dot = np.dot(approachVec, np.array([-1.0, 0.]))
+        self.direction = 6
+      if np.dot(approachVec, normalize(np.array([-1.0, -1.0]))) > min_dot:
+        min_dot = np.dot(approachVec, normalize(np.array([-1.0, -1.0])))
+        self.direction = 7
 
+  '''
   def avoidForce(self, preds):
     count = 0
     locSum = np.array([0., 0.])
@@ -255,8 +279,7 @@ class Predator:
         if (y <= preyY and futureY >= preyY) or (y >= preyY and futureY <= preyY):
           return prey
     return None
-  '''
+
   def PredForce(self, preys, prads):
     self.approachForce(preys)
     #self.avoidForce(prads)
-  '''

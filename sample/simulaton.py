@@ -3,7 +3,6 @@ import animats
 import sys  # sys.exit()
 import pygame
 import math
-import os
 
 class Simulation:
   def __init__(self, generation, num_preds, num_preys, width, height, saved_nets):
@@ -33,8 +32,6 @@ class Simulation:
 
     self.env = animats.Environment(generation, num_preds, num_preys, width, height, saved_nets)
 
-
-
   def ifend(self):
     return self.env.end_iteration()
 
@@ -59,79 +56,30 @@ class Simulation:
 
     pygame.display.flip()
 
-
-
-def get_last_line(file):
-  f = open(file,'r')
-  line1 = None
-  line2 = f.readline()
-  while line2:
-    line1 = line2
-    line2 = f.readline()
-  return line1
-
-fitness = []
-
-
-
 if __name__ == "__main__":
   # load save state from file
-  generation = 0
+  generation = 1
   iter_num = 0
   max_iter = 1
   filename = ""
-
   if len(sys.argv) > 2:
-    filename = "training_data"
-    generations = int(sys.argv[1])
+    filename = sys.argv[1]
     max_iter = int(sys.argv[2])
-
-  while generation < generations:
-
-    j = 0
-    while j < len(fitness):
-      fitness.pop()
-      j += 1;
-
-    simulation = Simulation(generation, 3, 1, 1000, 700, filename+str(iter_num)+'.csv')
+  simulation = Simulation(generation, 3, 1, 1000, 700, filename+str(iter_num)+'.csv')
   
-    # main loop
-    while iter_num < max_iter: 
-      for event in pygame.event.get():
-        # check for exit
-        if event.type == pygame.QUIT: 
-          simulation.env.save()
-          # save record log
-          fLog = open("log.txt",'w')
-          map(lambda r: fLog.write( str(r) + '\n'), simulation.env.log)
-          fLog.close()
-          sys.exit()
-      simulation.update(1)
-      if simulation.ifend() == 1:
-        data = get_last_line("training_data"+str(iter_num)+'.csv').split(",")
-        age = int(data[-1])
-        dist = float(data[-2])
-        energy = float(data[-3])
-        if energy < 0.0:
-          energy = 0.0
-        got_pray = float(data[-4])
-        fit = 1000000 * got_pray + 10000 * energy + 100/dist + age
-        if len(fitness)<5: 
-          fitness.append((iter_num,fit))
-          fitness.sort(lambda x,y:cmp(x[1],y[1]))
-        elif fitness[0][1] < fit:
-          fitness.pop(0)
-          fitness.append((iter_num,fit))
-          fitness.sort(lambda x,y:cmp(x[1],y[1]))
-      
-
-    
-        iter_num += 1
-        if iter_num < max_iter:
-          simulation = Simulation(generation, 3, 1, 1000, 700, filename+str(iter_num)+'.csv')
-
-    generation += 1      
-
-
-    
-  
+  # main loop
+  while iter_num < max_iter: 
+    for event in pygame.event.get():
+      # check for exit
+      if event.type == pygame.QUIT: 
+        simulation.env.save()
+        # save record log
+        fLog = open("log.txt",'w')
+        map(lambda r: fLog.write( str(r) + '\n'), simulation.env.log)
+        fLog.close()
+        sys.exit()
+    simulation.update(1)
+    if simulation.ifend() == 1:
+      iter_num += 1
+      if iter_num < max_iter:
+        simulation = Simulation(generation, 3, 1, 1000, 700, filename+str(iter_num)+'.csv')
