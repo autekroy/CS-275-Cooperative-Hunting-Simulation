@@ -16,6 +16,7 @@ import math
 # userData[0] has two list, which mean Diastolic and Systolic
 # each list has 26 data point
 
+# read the whold directory
 def readData(path):
 	import os
 	train = []
