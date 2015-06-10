@@ -34,7 +34,7 @@ class NNW:
 
     self.dataset = None
 
-  def trainData(self, learningRate = 0.05, batch = True, maxEpochs = 100, continueEpochs = 10):
+  def trainData(self, learningRate = 0.01, batch = True, maxEpochs = 100, continueEpochs = 10):
     # http://pybrain.org/docs/api/supervised/trainers.html?highlight=backproptrainer#pybrain.supervised.trainers.BackpropTrainer
     # BackpropTrainer(module, dataset=None, learningrate=0.01, lrdecay=1.0, momentum=0.0, verbose=False, batchlearning=False, weightdecay=0.0)
     # things for setting:
@@ -51,7 +51,7 @@ class NNW:
     error = trainer.trainUntilConvergence(maxEpochs = 1000, continueEpochs = 10)
     print error
 
-  def trainOnce(self, learningRate = 0.05, batch = True, maxEpochs = 100, continueEpochs = 10):
+  def trainOnce(self, learningRate = 0.01, batch = True, maxEpochs = 100, continueEpochs = 10):
     # http://pybrain.org/docs/api/supervised/trainers.html?highlight=backproptrainer#pybrain.supervised.trainers.BackpropTrainer
     # BackpropTrainer(module, dataset=None, learningrate=0.01, lrdecay=1.0, momentum=0.0, verbose=False, batchlearning=False, weightdecay=0.0)
     # things for setting:
