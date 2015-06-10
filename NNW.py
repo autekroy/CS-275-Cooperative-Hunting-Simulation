@@ -34,23 +34,41 @@ class NNW:
 
     self.dataset = None
 
-  def train(self, learningRate = 0.1, batch = True, maxEpochs = 100, continueEpochs = 10):
+  def trainData(self, learningRate = 0.05, batch = True, maxEpochs = 100, continueEpochs = 10):
     # http://pybrain.org/docs/api/supervised/trainers.html?highlight=backproptrainer#pybrain.supervised.trainers.BackpropTrainer
     # BackpropTrainer(module, dataset=None, learningrate=0.01, lrdecay=1.0, momentum=0.0, verbose=False, batchlearning=False, weightdecay=0.0)
     # things for setting:
     # 1. dataset
     # 2. learningrate: 0.01 ~ 0.25
     # 3. batchlearning: True or False
-    trainer = BackpropTrainer(self.net, self.dataset, learningRate, batch)
+    trainer = BackpropTrainer(self.net, dataset = self.dataset, learningrate = learningRate, batchlearning = batch)
 
     # trainUntilConvergence(dataset=None, maxEpochs=None, verbose=None, continueEpochs=10, validationProportion=0.25)
     # things for setting:
     # 1. maxEpochs: at most that many epochs are trained. 
     # 2. continueEpochs: Each time validation error hits a minimum, try for continueEpochs epochs to find a better one.
     # 3. validationProportion: ratio of the dataset for validation dataset.
-    trainer.trainUntilConvergence()
+    print trainer.trainUntilConvergence(maxEpochs = 1000, continueEpochs = 10)
+
+  def trainOnce(self, learningRate = 0.05, batch = True, maxEpochs = 100, continueEpochs = 10):
+    # http://pybrain.org/docs/api/supervised/trainers.html?highlight=backproptrainer#pybrain.supervised.trainers.BackpropTrainer
+    # BackpropTrainer(module, dataset=None, learningrate=0.01, lrdecay=1.0, momentum=0.0, verbose=False, batchlearning=False, weightdecay=0.0)
+    # things for setting:
+    # 1. dataset
+    # 2. learningrate: 0.01 ~ 0.25
+    # 3. batchlearning: True or False
+    trainer = BackpropTrainer(self.net, dataset = self.dataset, learningrate = learningRate, batchlearning = batch)
+
+    print trainer.train()
+
 
   def setTrainData(self, train, target):
+    # ds = SupervisedDataSet(2, 1)
+    # ds.addSample((0, 0), (0,))
+    # ds.addSample((0, 1), (1,))
+    # ds.addSample((1, 0), (1,))
+    # ds.addSample((1, 1), (0,))
+
     ds = SupervisedDataSet(self.num_input, self.num_output)
     dataSize = len(train) # should be same as len(target)
     for i in range(dataSize):
@@ -63,9 +81,9 @@ class NNW:
       decision = self.net.activate(inputData)
       return decision
 
-  def parameter(self, laynumber):
+  def parameter(self, laynumber = 0):
     if laynumber == 0:
-          return slef.net.params
+          return self.net.params
     elif laynumber == 1:
           return self.in_to_hidden.params
     elif laynumber == 2:

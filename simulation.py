@@ -4,7 +4,9 @@ import sys  # sys.exit()
 import pygame
 import math
 import os
+from readFile import *
 import svm_learn
+import NNW
 
 class Simulation:
   def __init__(self, generation, num_preds, num_preys, width, height, saved_nets):
@@ -79,6 +81,18 @@ def get_last_line(file):
 
 
 if __name__ == "__main__":
+
+  sampleTrain, sampleTarget1, sampleTarget2 = readData("sample/data")
+
+  sample_seed_net = NNW.NNW(28,24,9)
+  sample_dir_net = NNW.NNW(28,38,24)
+
+  sample_seed_net.setTrainData(sampleTrain, sampleTarget1)
+  sample_dir_net.setTrainData(sampleTrain, sampleTarget2)
+
+  sample_seed_net.trainData()
+  sample_dir_net.trainData()
+  
   # load save state from file
   fitness = []
   
@@ -86,7 +100,7 @@ if __name__ == "__main__":
   iter_num = 0
   max_iter = 1
   filename = ""
-  slct_num
+  slct_num = 5
 
   if len(sys.argv) > 2:
     filename = "training_data"
@@ -129,7 +143,6 @@ if __name__ == "__main__":
           fitness.pop(0)
           fitness.append((iter_num,fit,generation))
           fitness.sort(lambda x,y:cmp(x[1],y[1]))
-
     
         iter_num += 1
         if iter_num < max_iter:
