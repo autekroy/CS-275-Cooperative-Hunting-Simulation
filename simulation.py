@@ -28,7 +28,7 @@ class Simulation:
     # modify pictures to appropriate sizes
     self.pred_sprite   = pygame.transform.scale(self.pred_sprite, (18,18))
     self.bg            = pygame.transform.scale(self.bg, (1000, 700))
-    self.prey          = pygame.transform.scale(self.prey, (14, 14))
+    self.prey          = pygame.transform.scale(self.prey, (18, 18))
 
     self.env = animats.Environment(generation, num_preds, num_preys, width, height, saved_nets)
 
@@ -65,7 +65,7 @@ if __name__ == "__main__":
   if len(sys.argv) > 2:
     filename = sys.argv[1]
     max_iter = int(sys.argv[2])
-  simulation = Simulation(generation, 3, 2, 1000, 700, filename+str(iter_num)+'.csv')
+  simulation = Simulation(generation, 3, 1, 1000, 700, filename+str(iter_num)+'.csv')
   
   # main loop
   while iter_num < max_iter: 
@@ -82,4 +82,4 @@ if __name__ == "__main__":
     if simulation.ifend() == 1:
       iter_num += 1
       if iter_num < max_iter:
-        simulation = Simulation(generation, 3, 2, 1000, 700, filename+str(iter_num)+'.csv')
+        simulation = Simulation(generation, 3, 1, 1000, 700, filename+str(iter_num)+'.csv')
