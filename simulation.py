@@ -165,6 +165,10 @@ if __name__ == "__main__":
         line = f.readline()
       j += 1
 
+      NN_inp = [tuple(l) for l in inp]
+      NN_sp_oup = [tuple(l) for l in sp_oup]
+      NN_dr_oup = [tuple(l) for l in dr_oup]
+
     
     generation += 1      
 
