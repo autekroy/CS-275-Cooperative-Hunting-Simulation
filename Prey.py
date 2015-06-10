@@ -52,17 +52,7 @@ class Prey:
     else: # if prey idle, random move
       self.loc += np.array([random.random()*4 - 2, random.random()*4 - 2])
     self.acc = np.array([0., 0.])
-    '''#for testing
-    if self.loc[0] <= 0:
-      self.loc[0] = self.width
-    elif self.loc[0] > self.width:
-      self.loc[0] = 0
 
-    if self.loc[1] <= 0:
-      self.loc[1] = self.height
-    elif self.loc[1] > self.height:
-      self.loc[1] = 0 
-    #------------end of testing'''
   def applyF(self, force):
     # F = ma (a = F/m)
     a = force / self.mass
@@ -102,7 +92,7 @@ class Prey:
       approachVec = limit(approachVec, self.maxForce)
       self.applyF(approachVec)
 
-# align
+# align preys
   def alignForce(self, preys):
     count = 0
     velSum = np.array([0., 0.])
@@ -119,6 +109,7 @@ class Prey:
         alignVec = limit(alignVec, self.maxForce)
         self.applyF(alignVec)
 
+# repel from predators
   def repelForce(self, preds):
     for pred in preds:
       futurePos = self.loc + self.vel
@@ -138,6 +129,7 @@ class Prey:
           repelVec /= d*0.01
         self.applyF(repelVec)
 
+# apply all forces 
   def preyFleeForce(self, preys):
     self.avoidForce(preys)
     self.approachForce(preys)

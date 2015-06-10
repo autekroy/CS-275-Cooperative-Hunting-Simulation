@@ -86,9 +86,9 @@ class Environment:
     #-- Method 1 ---------------------#
     #-- Initial Stage ----------------#
     #-- First Network ---: Speed -----#
-    self.speed_net = NNW.NNW(28,32,9)
+    self.speed_net = NNW.NNW(28,24,9)
     #-- Second Network --: Direction -#
-    self.dir_net = NNW.NNW(28,40,24)
+    self.dir_net = NNW.NNW(28,38,24)
     #---------------------------------#
 
   def end_iteration(self):
@@ -117,7 +117,6 @@ class Environment:
     radius = random.randrange(placeRadius, placeRadius + 20)
     x = math.cos(degree) * radius
     y = math.sin(degree) * radius
-
     centerX = self.width / 2
     centerY = self.height /2
     # print math.cos(math.radians(360)), math.sin(math.radians(270))

@@ -72,6 +72,8 @@ def get_last_line(file):
 
 
 
+#before main 
+#need to read and train data at the very beginning using ./sample/data/ Yao-Jen
 
 
 if __name__ == "__main__":
@@ -90,12 +92,9 @@ if __name__ == "__main__":
 
   while generation < generationsNum:
 
-    j = 0
-    while j < len(fitness):
-      fitness.pop()
-      j += 1;
+    del fitness[:]
 
-    simulation = Simulation(generation, 3, 1, 1000, 700, filename+str(iter_num)+'.csv')
+    simulation = Simulation(generation, 3, 1, 1000, 700, filename+'_gen_'+str(generation)+'_iter_'+str(iter_num)+'.csv')
   
     # main loop
     while iter_num < max_iter: 
@@ -111,14 +110,15 @@ if __name__ == "__main__":
           
       simulation.update(1)
       if simulation.ifend() == 1:
-        data = get_last_line("training_data"+str(iter_num)+'.csv').split(",")
+        data = get_last_line("training_data"+'_gen_'+str(generation)+'_iter_'+str(iter_num)+'.csv').split(",")
         age = int(data[-1])
         dist = float(data[-2])
         energy = float(data[-3])
         if energy < 0.0:
           energy = 0.0
         got_pray = float(data[-4])
-        fit = 1000000 * got_pray + 10000 * energy + 100/dist + age
+        fit = 1000000 * got_pray + 10 * energy + 100/dist + age
+        print 'fit is :' + str(fit)
         if len(fitness)<5: 
           fitness.append((iter_num,fit))
           fitness.sort(lambda x,y:cmp(x[1],y[1]))
@@ -126,12 +126,11 @@ if __name__ == "__main__":
           fitness.pop(0)
           fitness.append((iter_num,fit))
           fitness.sort(lambda x,y:cmp(x[1],y[1]))
-      
-
     
         iter_num += 1
         if iter_num < max_iter:
-          simulation = Simulation(generation, 3, 1, 1000, 700, filename+str(iter_num)+'.csv')
+          simulation = Simulation(generation, 3, 1, 1000, 700, filename+'_gen_'+str(generation)+'_iter_'+str(iter_num)+'.csv')
+          #add data for train here: Meng Li
 
     generation += 1      
 
