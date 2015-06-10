@@ -72,6 +72,8 @@ def get_last_line(file):
 
 fitness = []
 
+#before main 
+#need to read and train data at the very beginning using ./sample/data/ Yao-Jen
 
 
 if __name__ == "__main__":
@@ -88,10 +90,7 @@ if __name__ == "__main__":
 
   while generation < generations:
 
-    j = 0
-    while j < len(fitness):
-      fitness.pop()
-      j += 1;
+    del fitness[:]
 
     simulation = Simulation(generation, 3, 1, 1000, 700, filename+'_gen_'+str(generation)+'_iter_'+str(iter_num)+'.csv')
   
@@ -124,12 +123,11 @@ if __name__ == "__main__":
           fitness.pop(0)
           fitness.append((iter_num,fit))
           fitness.sort(lambda x,y:cmp(x[1],y[1]))
-        print fitness
-
     
         iter_num += 1
         if iter_num < max_iter:
           simulation = Simulation(generation, 3, 1, 1000, 700, filename+'_gen_'+str(generation)+'_iter_'+str(iter_num)+'.csv')
+          #add data for train here: Meng Li
 
     generation += 1      
 
