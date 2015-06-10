@@ -105,7 +105,7 @@ if __name__ == "__main__":
   iter_num = 0
   max_iter = 1
   filename = ""
-  slct_num
+  slct_num = 5
 
   if len(sys.argv) > 2:
     filename = "training_data"
