@@ -123,16 +123,15 @@ class Predator:
       self.speed_text = "maintain"
 
     # Update Speed
-    deltaVel = self.vel
+    prevVel = self.vel
     self.vel += self.acc
     if self.vel >= self.maxSpeed:
       self.vel = self.maxSpeed
     elif self.vel <= 0:
       self.vel = 0.0
-    deltaVel = (self.vel + deltaVel)/2
 
     # Update Energy
-    self.consumeEnergy(deltaVel)
+    self.consumeEnergy(self.vel)
 
     # Update Location
     self.prevLoc = self.loc

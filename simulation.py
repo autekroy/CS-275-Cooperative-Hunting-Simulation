@@ -73,7 +73,6 @@ class Simulation:
 
 def get_last_line(file):
   f = open(file,'r')
-  print file
   for line in f:
     pass
   return line
@@ -223,5 +222,7 @@ def main():
 
 if __name__ == '__main__':
   main()
+
+
     
   
