@@ -4,7 +4,7 @@ from enum import Enum
 import numpy as np
 
 scale = 5.0
-Default_Engery = 1000
+Default_Engery = 9000
 
 class Speed(): 
     up = 0
@@ -123,16 +123,15 @@ class Predator:
       self.speed_text = "maintain"
 
     # Update Speed
-    deltaVel = self.vel
+    prevVel = self.vel
     self.vel += self.acc
     if self.vel >= self.maxSpeed:
       self.vel = self.maxSpeed
     elif self.vel <= 0:
       self.vel = 0.0
-    deltaVel = (self.vel + deltaVel)/2
 
     # Update Energy
-    self.consumeEnergy(deltaVel)
+    self.consumeEnergy(prevVel, self.vel)
 
     # Update Location
     self.prevLoc = self.loc
@@ -141,8 +140,8 @@ class Predator:
     self.age += 1
     self.timeframe += 1
 
-  def consumeEnergy(self, v):
-    self.energy -= v
+  def consumeEnergy(self, prevVel, curVel):
+    self.energy -= (prevVel*prevVel + curVel*curVel)/2
     if self.energy < 0:
       self.energy = 0
 
