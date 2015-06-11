@@ -174,6 +174,7 @@ class Predator:
     # consume energy based on differnt current behavior
     self.age += 1
     self.timeframe += 1
+    return self.capturePrey(preys)
 
   def consumeEnergy(self, v):
     self.energy -= (v*v)
