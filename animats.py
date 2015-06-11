@@ -7,7 +7,7 @@ import numpy as np
 import sys
 import NNW
 import Prey
-import Predator
+import Predator_Force as Predator
 import Prey_simple as SPrey
 import simulation
 

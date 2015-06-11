@@ -119,6 +119,8 @@ def TrainPrevGen(train_list,top_num):
 
 def UpdateFitness(fitness_list, filename, max_num):
   file_last_line = get_last_line(filename)
+  file_last_line = file_last_line.replace('\n','')
+  file_last_line = file_last_line.split(',')
   iter_fitness_val = file_last_line[-1]
   lowest_fitness = fitness_list[0][0]
   # append file if number is less then the number we want to train
@@ -199,7 +201,7 @@ def main():
   while Generation < Max_Gen:
     Iteration = 0
     print '# In Main Loop :'
-    print '- Start Generation ' + str(Generation) + ' -'
+    print '-- Start Generation ' + str(Generation) + '  --'
     if Generation!= 0:
       Speed_Parameter, Dir_Parameter = TrainPrevGen(Fitness,Train_Num)
     # --- Iteration Loop --- #
@@ -216,7 +218,7 @@ def main():
       Fitness = UpdateFitness(Fitness,FilePath,Train_Num)
       Iteration += 1
     # --- End of Iteration ---#
-    '- End of Generation ' + str(Generation) + ' .'
+    print '-- End of Generation ' + str(Generation) + ' --'
     Generation += 1
   # --- End of Loop --- #   
 
