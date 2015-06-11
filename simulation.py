@@ -224,21 +224,21 @@ if __name__ == "__main__":
         line = f.readline()
       j += 1
 
-      NN_inp = [tuple(l) for l in inp]
-      NN_sp_oup = [tuple(l) for l in sp_oup]
-      NN_dr_oup = [tuple(l) for l in dr_oup]
+    NN_inp = [tuple(l) for l in inp]
+    NN_sp_oup = [tuple(l) for l in sp_oup]
+    NN_dr_oup = [tuple(l) for l in dr_oup]
 
-      sp_nnw = NNW.NNW(28,24,9)
-      dr_nnw = NNW.NNW(28,38,24)
+    sp_nnw = NNW.NNW(28,24,9)
+    dr_nnw = NNW.NNW(28,38,24)
 
-      sp_nnw.setTrainData(NN_inp, NN_sp_oup)
-      dr_nnw.setTrainData(NN_inp, NN_dr_oup)
+    sp_nnw.setTrainData(NN_inp, NN_sp_oup)
+    dr_nnw.setTrainData(NN_inp, NN_dr_oup)
 
-      sp_nnw.trainData()
-      dr_nnw.trainData()
+    sp_nnw.trainData()
+    dr_nnw.trainData()
 
-      speed_para = sp_nnw.parameter()
-      dir_para = dr_nnw.parameter()
+    speed_para = sp_nnw.parameter()
+    dir_para = dr_nnw.parameter()
 
 
     
