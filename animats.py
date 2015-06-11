@@ -9,6 +9,7 @@ import NNW
 import Prey
 import Predator
 import Prey_simple as SPrey
+import simulation
 
 from pybrain.structure import RecurrentNetwork, FeedForwardNetwork, LinearLayer, SigmoidLayer, FullConnection
 
@@ -178,8 +179,17 @@ class Environment:
     # get the result from NNW
     input_vals = self.getNNWInput()
 
-    nn_out_speed = self.speed_net.activate(input_vals)
-    nn_out_dir = self.dir_net.activate(input_vals)
+    nn_input_vals = []
+    for j in range(len(input_vals)):
+      if simulation.ref_inp[j] > 0.0:
+        nn_input_vals.append(input_vals[j]/simulation.ref_inp[j])
+      else:
+        nn_input_vals.append(input_vals[j])
+
+
+
+    nn_out_speed = self.speed_net.activate(nn_input_vals)
+    nn_out_dir = self.dir_net.activate(nn_input_vals)
 
     count = 0
     # update each predator

@@ -88,6 +88,18 @@ def get_last_line(file):
     pass
   return line
 
+def to_abs_float(l):
+  res = []
+  for i in range(len(l)):
+    res.append(abs(float(l[i])))
+  return res
+
+ref_data = open("training_data"+'_gen_'+str(0)+'_iter_'+str(0)+'.csv', 'r').readline().split(",")
+ref_inp = to_abs_float(ref_data[0:28])
+#ref_sp_oup = to_abs_float(ref_data[28:37])
+#ref_dr_oup = to_abs_float(ref_data[37:61])
+
+
 if __name__ == "__main__":
 
   sampleTrain, sampleTarget1, sampleTarget2 = readData("sample/data")
@@ -122,7 +134,7 @@ if __name__ == "__main__":
     if energy < 0.0:
       energy = 0.0
     got_pray = float(data[-4])
-    fit = 1000000 * got_pray + 10 * energy + 100/dist + age
+    fit = 1000000 * got_pray + energy + 1000/dist + 0.1*age
     print 'fit is :' + str(fit)
     if len(fitness)<slct_num: 
       fitness.append((iter_num,fit,generation))
@@ -160,6 +172,7 @@ if __name__ == "__main__":
           sys.exit()
           
       simulation.update(1)
+
       #print simulation.ifend()
       if simulation.ifend() == 1:
         data = get_last_line("training_data"+'_gen_'+str(generation)+'_iter_'+str(iter_num)+'.csv').split(",")
@@ -169,7 +182,7 @@ if __name__ == "__main__":
         if energy < 0.0:
           energy = 0.0
         got_pray = float(data[-4])
-        fit = 1000000 * got_pray + 10 * energy + 100/dist + age
+        fit = 1000000 * got_pray + energy + 1000/dist + 0.1*age
         print 'fit is :' + str(fit)
         if len(fitness)<slct_num: 
           fitness.append((iter_num,fit,generation))
@@ -190,6 +203,7 @@ if __name__ == "__main__":
     sp_oup = []
     dr_oup = []
 
+
     j = 0
     while j < len(fitness):
       f = open("training_data"+'_gen_'+str(generation)+'_iter_'+str(fitness[j][0])+'.csv', "r")
@@ -199,6 +213,7 @@ if __name__ == "__main__":
         inp.append([])
         sp_oup.append([])
         dr_oup.append([])
+        '''
         for i in range(3):
           trn_data[i*9+0] = float(trn_data[i*9+0])/10
           trn_data[i*9+1] = float(trn_data[i*9+0])/1000
@@ -211,6 +226,9 @@ if __name__ == "__main__":
           v_len = math.sqrt(float(trn_data[i*9+7])**2 + float(trn_data[i*9+8])**2)
           trn_data[i*9+7] = float(trn_data[i*9+7]) / v_len
           trn_data[i*9+8] = float(trn_data[i*9+8]) / v_len
+        '''
+        
+          
         k = 0
         while k < 28:
           inp[len(inp)-1].append(float(trn_data[k]))
@@ -223,22 +241,37 @@ if __name__ == "__main__":
           k += 1
         line = f.readline()
       j += 1
+  
 
-      NN_inp = [tuple(l) for l in inp]
-      NN_sp_oup = [tuple(l) for l in sp_oup]
-      NN_dr_oup = [tuple(l) for l in dr_oup]
+    j = 0
+    while j < len(inp):
+      k = 0
+      while k < 28:
+        if ref_inp[k] > 0.0:
+          inp[j][k] /= ref_inp[k]
+        k += 1
+      j += 1
 
-      sp_nnw = NNW.NNW(28,24,9)
-      dr_nnw = NNW.NNW(28,38,24)
 
-      sp_nnw.setTrainData(NN_inp, NN_sp_oup)
-      dr_nnw.setTrainData(NN_inp, NN_dr_oup)
 
-      sp_nnw.trainData()
-      dr_nnw.trainData()
 
-      speed_para = sp_nnw.parameter()
-      dir_para = dr_nnw.parameter()
+
+
+    NN_inp = [tuple(l) for l in inp]
+    NN_sp_oup = [tuple(l) for l in sp_oup]
+    NN_dr_oup = [tuple(l) for l in dr_oup]
+
+    sp_nnw = NNW.NNW(28,24,9)
+    dr_nnw = NNW.NNW(28,38,24)
+
+    sp_nnw.setTrainData(NN_inp, NN_sp_oup)
+    dr_nnw.setTrainData(NN_inp, NN_dr_oup)
+
+    sp_nnw.trainData()
+    dr_nnw.trainData()
+
+    speed_para = sp_nnw.parameter()
+    dir_para = dr_nnw.parameter()
 
 
     
