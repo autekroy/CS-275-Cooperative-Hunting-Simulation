@@ -43,6 +43,14 @@ class Prey:
     self.repelRadius = 100
     self.status = 0
   
+  def getNNInput(self):
+    input_val  = []
+    input_val.append(self.status)
+    cur_vec = normalize(self.vel)
+    input_val.append(self.cur_vec[0])
+    input_val.append(self.cur_vec[1])
+    return input_val
+    
   def update(self, preys, preds):
     self.repelForce(preds)
     if preyFleeing == 1:

@@ -66,12 +66,6 @@ class NNW:
 
 
   def setTrainData(self, train, target):
-    # ds = SupervisedDataSet(2, 1)
-    # ds.addSample((0, 0), (0,))
-    # ds.addSample((0, 1), (1,))
-    # ds.addSample((1, 0), (1,))
-    # ds.addSample((1, 1), (0,))
-
     ds = SupervisedDataSet(self.num_input, self.num_output)
     dataSize = len(train) # should be same as len(target)
     for i in range(dataSize):
@@ -84,7 +78,7 @@ class NNW:
       decision = self.net.activate(inputData)
       return decision
 
-  def parameter(self, laynumber = 0):
+  def getParameter(self, laynumber = 0):
     if laynumber == 0:
           return self.net.params
     elif laynumber == 1:
@@ -92,5 +86,5 @@ class NNW:
     elif laynumber == 2:
           return self.hidden_to_out.params
 
-  def setPara(self, para):
+  def setParameters(self, para):
       self.net._setParameters(para)

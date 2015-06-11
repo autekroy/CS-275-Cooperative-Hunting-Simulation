@@ -4,7 +4,7 @@ from enum import Enum
 import numpy as np
 
 scale = 5.0
-Default_Engery = 1000
+Default_Engery = 4000
 
 class Speed(): 
     up = 0
@@ -74,7 +74,7 @@ class Predator:
   def getNNWInputList(self):
     nnlist = []
     nnlist.append(np.linalg.norm(self.vel))
-    nnlist.append(self.energy)
+    nnlist.append(self.energy/Default_Engery)
     nnlist.append(self.state)
     return nnlist
 
@@ -140,13 +140,14 @@ class Predator:
 
     self.age += 1
     self.timeframe += 1
+    return self.capturePrey(preys)
 
   def consumeEnergy(self, v):
-    self.energy -= v
+    self.energy -= (v*v)
     if self.energy < 0:
       self.energy = 0
 
-  # returns a child with a genetic combination of neural net weights of 2 parents
+  # returns a child with a genetic combination of neural net weights of 2 parents ----  Not in Used
   def mate(self, other):
     child = Predator(0,0)
     child.generation = min(self.generation, other.generation) + 1

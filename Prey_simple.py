@@ -75,3 +75,11 @@ class Prey_simple:
           repelVec /= (d*d)
         self.applyF(repelVec)
 
+  def getNNInput(self):
+    input_val  = []
+    self.cur_vec = np.array([0. ,0.])
+    input_val.append(self.status)
+    self.cur_vec = normalize(self.vel)
+    input_val.append(self.cur_vec[0])
+    input_val.append(self.cur_vec[1])
+    return input_val

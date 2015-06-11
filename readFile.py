@@ -1,22 +1,7 @@
 
 import math
-# From --------------------------------------------------
-# UCLA CS 260 - Machine Learning Algorithm
-# Yao-Jen Chang, 2015 @UCLA
-# Email: autekwing@ucla.edu
-#
-# Functions about loading training data
-#--------------------------------------------------
 
 
-# Read the trainning data
-# Have 39 users with 20 label 0, 19 label 1
-# Each user data have time series data from 26 week
-
-# userData[0] has two list, which mean Diastolic and Systolic
-# each list has 26 data point
-
-# read the whold directory
 def readData(path):
 	import os
 	train = []
