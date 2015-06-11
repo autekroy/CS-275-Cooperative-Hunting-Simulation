@@ -92,8 +92,8 @@ if __name__ == "__main__":
 
   sampleTrain, sampleTarget1, sampleTarget2 = readData("sample/data")
 
-  sample_speed_net = NNW.NNW(28,24,9)
-  sample_dir_net = NNW.NNW(28,38,24)
+  sample_speed_net = NNW.NNW(28,42,9)
+  sample_dir_net = NNW.NNW(28,42,24)
 
   sample_speed_net.setTrainData(sampleTrain, sampleTarget1)
   sample_dir_net.setTrainData(sampleTrain, sampleTarget2)
@@ -114,7 +114,7 @@ if __name__ == "__main__":
 
 
   i1 = 0
-  while i1 < 10:
+  while i1 < 11:
     data = get_last_line("training_data"+'_gen_'+str(0)+'_iter_'+str(i1)+'.csv').split(",")
     age = int(data[-1])
     dist = float(data[-2])
@@ -228,8 +228,8 @@ if __name__ == "__main__":
     NN_sp_oup = [tuple(l) for l in sp_oup]
     NN_dr_oup = [tuple(l) for l in dr_oup]
 
-    sp_nnw = NNW.NNW(28,24,9)
-    dr_nnw = NNW.NNW(28,38,24)
+    sp_nnw = NNW.NNW(28,42,9)
+    dr_nnw = NNW.NNW(28,42,24)
 
     sp_nnw.setTrainData(NN_inp, NN_sp_oup)
     dr_nnw.setTrainData(NN_inp, NN_dr_oup)

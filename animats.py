@@ -86,9 +86,9 @@ class Environment:
     #-- Method 1 ---------------------#
     #-- Initial Stage ----------------#
     #-- First Network ---: Speed -----#
-    self.speed_net = NNW.NNW(28,24,9)
+    self.speed_net = NNW.NNW(28,42,9)
     #-- Second Network --: Direction -#
-    self.dir_net = NNW.NNW(28,38,24)
+    self.dir_net = NNW.NNW(28,42,24)
     #---------------------------------#
   def set_NN_para(self, speedPara, dirPara):
     self.speed_net._setParameters(speedPara)
