@@ -14,7 +14,7 @@ import simulation
 from pybrain.structure import RecurrentNetwork, FeedForwardNetwork, LinearLayer, SigmoidLayer, FullConnection
 
 preyFleeing = 0
-Default_Engery = 1000
+Default_Engery = 9000
 scale = 5.0
 
 class Speed(Enum): 
