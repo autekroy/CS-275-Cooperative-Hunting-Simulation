@@ -9,6 +9,7 @@ import svm_learn
 import NNW
 import time
 import datetime
+import readFile
 
 class Simulation:
   def __init__(self, generation, num_preds, num_preys, width, height, saved_nets, speed_para, dir_para):
@@ -43,9 +44,10 @@ class Simulation:
     return self.env.end_iteration()
 
   def texts(self, score, line, font_size):
-    font=pygame.font.Font(None,font_size)
-    text=font.render(str(score), 1,(0,0,0))
-    self.screen.blit(text, (30, 30+int(line)*15)) 
+    # font=pygame.font.Font(None,font_size)
+    # text=font.render(str(score), 1,(0,0,0))
+    # self.screen.blit(text, (30, 30+int(line)*15)) 
+    print score
 
   def update(self, speed):
     # update model a certain number of times
@@ -122,7 +124,10 @@ def UpdateFitness(fitness_list, filename, max_num):
   file_last_line = file_last_line.replace('\n','')
   file_last_line = file_last_line.split(',')
   iter_fitness_val = file_last_line[-1]
-  lowest_fitness = fitness_list[0][0]
+
+  if len(fitness_list) > 0:
+    lowest_fitness = fitness_list[0][0]
+
   # append file if number is less then the number we want to train
   if len(fitness_list) < max_num:
     fitness_list.append((iter_fitness_val, filename))
@@ -134,32 +139,11 @@ def UpdateFitness(fitness_list, filename, max_num):
     fitness_list.sort(lambda x,y:cmp(x[0],y[0]))
   return  fitness_list
 
-def ReadSampleData(dir_path):
-  InputSamples = []
-  SpeedSamples = []
-  DirectionSamples = []
-  Fitness = []
-  files = os.listdir(dir_path)
-  for sample_file in files:
-    if sample_file[-4:] != '.csv':
-      continue
-    file_path = dir_path + '/' + sample_file
-    f = open(file_path,'r')
-    if f.closed:
-      continue
-    for row in f:
-      row = row.replace("\n", "")
-      data = row.split(',')
-      InputSamples.append(tuple(data[0:30]))
-      SpeedSamples.append(tuple(data[30:39]))
-      DirectionSamples.append(tuple(data[39:63]))
-    f.close()
-    Fitness.append((data[-1],file_path))
-  return (InputSamples, SpeedSamples, DirectionSamples, Fitness)
 
 def main():
   # Read Successful Prey-Capture Data and generate trained parameters ---#
-  (InputSamples, SpeedSamples, DirectionSamples, Fitness) = ReadSampleData("sample/data")
+  # read from a folder of sample data created by force-predator
+  (InputSamples, SpeedSamples, DirectionSamples, Fitness) = ReadSampleData("sampleData")
   Init_Speed_Net = NNW.NNW(30,42,9)
   Init_Dir_Net = NNW.NNW(30,42,24)
   #Init_Speed_Net.setTrainData(InputSamples,SpeedSamples)

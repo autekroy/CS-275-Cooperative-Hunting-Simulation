@@ -1,3 +1,33 @@
+
+# ============================== Test for simulation ============================
+
+#!/usr/bin/python
+import animats
+import sys  # sys.exit()
+import pygame
+import math
+import os
+from readFile import *
+import svm_learn
+import NNW
+import time
+import datetime
+import readFile
+
+(InputSamples, SpeedSamples, DirectionSamples, Fitness) = ReadSampleData("sampleData")
+
+Init_Speed_Net = NNW.NNW(30,42,9)
+Init_Dir_Net = NNW.NNW(30,42,24)
+Init_Speed_Net.setTrainData(InputSamples,SpeedSamples)
+Init_Dir_Net.setTrainData(InputSamples,DirectionSamples)
+
+Init_Speed_Net.trainOnce()
+Init_Dir_Net.trainOnce()
+
+Init_Speed_Net.trainData()
+Init_Dir_Net.trainData()
+
+# ============================== Test for reading file ============================
 from readFile import *
 import NNW
 from pybrain.structure import RecurrentNetwork, FeedForwardNetwork, LinearLayer, SigmoidLayer, FullConnection
@@ -26,7 +56,7 @@ sample_seed_net.trainData()
 sample_dir_net.trainData()
 
 
-
+# ============================== Test for NNW ============================
 
 import numpy
 from pybrain.tools.shortcuts import buildNetwork

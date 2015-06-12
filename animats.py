@@ -7,9 +7,11 @@ import numpy as np
 import sys
 import NNW
 import Prey
-import Predator_Force as Predator
+# import Predator_Force as Predator
+import Predator
 import Prey_simple as SPrey
 import simulation
+import os
 
 from pybrain.structure import RecurrentNetwork, FeedForwardNetwork, LinearLayer, SigmoidLayer, FullConnection
 
@@ -115,6 +117,7 @@ class Environment:
       for other in self.predators:
         if pred != other:
           loc = other.loc - pred.loc
+          loc = normalize(loc)
           input_vals.append(loc[0])
           input_vals.append(loc[1])
       loc = self.preys[0].loc - pred.loc

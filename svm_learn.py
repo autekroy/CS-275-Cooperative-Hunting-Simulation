@@ -27,8 +27,3 @@ def train(inp, outp):
 
 def learn(lion1_posx, lion1_posy, lion2_posx, lion2_posy, zebra1_posx, zebra1_posy, zebra2_posx, zebra2_posy, lion1_behav, lion2_behav, zebra1_behav, zebra2_behav):
 	return train(selected_lions).predict(np.array([[lion1_posx, lion1_posy, lion2_posx, lion2_posy, zebra1_posx, zebra1_posy, zebra2_posx, zebra2_posy, lion1_behav, lion2_behav, zebra1_behav, zebra2_behav]]))
-
-
-	
-
-

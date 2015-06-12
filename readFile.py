@@ -1,5 +1,29 @@
 
 import math
+import os
+
+def ReadSampleData(dir_path):
+  InputSamples = []
+  SpeedSamples = []
+  DirectionSamples = []
+  Fitness = []
+  files = os.listdir(dir_path)
+  for sample_file in files:
+    if sample_file[-4:] != '.csv':
+      continue
+    file_path = dir_path + '/' + sample_file
+    f = open(file_path,'r')
+    if f.closed:
+      continue
+    for row in f:
+      row = row.replace("\n", "")
+      data = row.split(',')
+      InputSamples.append(tuple(data[0:30]))
+      SpeedSamples.append(tuple(data[30:39]))
+      DirectionSamples.append(tuple(data[39:63]))
+    f.close()
+    Fitness.append((data[-1],file_path))
+  return (InputSamples, SpeedSamples, DirectionSamples, Fitness)
 
 
 def readData(path):

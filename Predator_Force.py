@@ -5,7 +5,7 @@ import numpy as np
 import sys
 
 scale = 5.0
-Default_Engery = 4000
+Default_Engery = 5000
 class Speed(Enum): 
     up = 0
     down = -1
@@ -177,7 +177,7 @@ class Predator:
     return self.capturePrey(preys)
 
   def consumeEnergy(self, v):
-    self.energy -= (v*v)
+    self.energy -= (v*v + 5.0)
     if self.energy < 0:
       self.energy = 0
 
