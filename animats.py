@@ -6,7 +6,7 @@ from enum import Enum
 import numpy as np
 import sys
 import NNW
-import Prey
+# import Prey
 # import Predator_Force as Predator
 import Predator
 import Prey_simple as SPrey

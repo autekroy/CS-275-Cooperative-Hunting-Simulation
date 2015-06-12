@@ -13,8 +13,11 @@ import NNW
 import time
 import datetime
 import readFile
+from simulation import *
 
 (InputSamples, SpeedSamples, DirectionSamples, Fitness) = ReadSampleData("sampleData")
+
+input, speed, dir = readTrainData(Fitness,2)
 
 Init_Speed_Net = NNW.NNW(30,42,9)
 Init_Dir_Net = NNW.NNW(30,42,24)

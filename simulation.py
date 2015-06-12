@@ -79,15 +79,14 @@ def get_last_line(file):
     pass
   return line
 
-def TrainPrevGen(train_list,top_num):
-  Init_Speed_Net = NNW.NNW(30,42,9)
-  Init_Dir_Net = NNW.NNW(30,42,24)
+# train_list have the path of all the training data
+def readTrainData(train_list,top_num):
   list_len = len(train_list)
   InputSamples = []
   SpeedSamples = []
   DirectionSamples = []
   # Load each sample from train files
-  for i in range(list_len):
+  for i in range(top_num):
     f = open(train_list[i][1],'r')
     if f.closed:
       continue
@@ -98,6 +97,15 @@ def TrainPrevGen(train_list,top_num):
       SpeedSamples.append(tuple(data[30:39]))
       DirectionSamples.append(tuple(data[39:63]))
     f.close()
+
+  return InputSamples, SpeedSamples, DirectionSamples 
+
+def TrainPrevGen(train_list,top_num):
+  Init_Speed_Net = NNW.NNW(30,42,9)
+  Init_Dir_Net = NNW.NNW(30,42,24)
+  
+  InputSamples, SpeedSamples, DirectionSamples = readTrainData(train_list,top_num)
+
   time_start = datetime.datetime.now()
   # Train the data
   print '# In TrainPrevGen Function :'
@@ -204,11 +212,7 @@ def main():
     # --- End of Iteration ---#
     print '-- End of Generation ' + str(Generation) + ' --'
     Generation += 1
-  # --- End of Loop --- #   
+  # --- End of Loop --- #
 
 if __name__ == '__main__':
   main()
-
-
-    
-  
