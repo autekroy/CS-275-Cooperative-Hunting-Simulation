@@ -10,6 +10,7 @@ import NNW
 import time
 import datetime
 import readFile
+import random
 
 class Simulation:
   def __init__(self, generation, num_preds, num_preys, width, height, saved_nets, speed_para, dir_para):
@@ -64,11 +65,11 @@ class Simulation:
     # paint text
     count = 0
     for pred in self.env.predators:
-      self.texts("PREDATOR " + str(count+1), count*6, 20)
-      self.texts("  state: " + pred.speed_text, count*6 + 1, 20)
-      self.texts("  direction: " + pred.direction_text, count*6 + 2, 20)
-      self.texts("  speed: " + str(pred.vel*5), count*6 + 3, 20)
-      self.texts("  energy: " + str(pred.energy), count*6 + 4, 20)
+      # self.texts("PREDATOR " + str(count+1), count*6, 20)
+      # self.texts("  state: " + pred.speed_text, count*6 + 1, 20)
+      # self.texts("  direction: " + pred.direction_text, count*6 + 2, 20)
+      # self.texts("  speed: " + str(pred.vel*5), count*6 + 3, 20)
+      # self.texts("  energy: " + str(pred.energy), count*6 + 4, 20)
       count += 1
     pygame.display.flip()
 #--- End of Simulation Class --- #
@@ -80,13 +81,15 @@ def get_last_line(file):
   return line
 
 # train_list have the path of all the training data
-def readTrainData(train_list,top_num):
+def readTrainData(train_list, Train_Num, top_num):
   list_len = len(train_list)
   InputSamples = []
   SpeedSamples = []
   DirectionSamples = []
   # Load each sample from train files
-  for i in range(top_num):
+  randomChoose = random.sample( range(5),  top_num)
+  print randomChoose
+  for i in randomChoose:
     f = open(train_list[i][1],'r')
     if f.closed:
       continue
@@ -100,11 +103,11 @@ def readTrainData(train_list,top_num):
 
   return InputSamples, SpeedSamples, DirectionSamples 
 
-def TrainPrevGen(train_list,top_num):
+def TrainPrevGen(train_list, Train_Num, top_num):
   Init_Speed_Net = NNW.NNW(30,42,9)
   Init_Dir_Net = NNW.NNW(30,42,24)
   
-  InputSamples, SpeedSamples, DirectionSamples = readTrainData(train_list,top_num)
+  InputSamples, SpeedSamples, DirectionSamples = readTrainData(train_list, Train_Num, top_num)
 
   time_start = datetime.datetime.now()
   # Train the data
@@ -152,12 +155,14 @@ def main():
   # Read Successful Prey-Capture Data and generate trained parameters ---#
   # read from a folder of sample data created by force-predator
   (InputSamples, SpeedSamples, DirectionSamples, Fitness) = ReadSampleData("sampleData")
+  InputSamples, SpeedSamples, DirectionSamples = readTrainData(Fitness, 5, 2)
+
   Init_Speed_Net = NNW.NNW(30,42,9)
   Init_Dir_Net = NNW.NNW(30,42,24)
-  #Init_Speed_Net.setTrainData(InputSamples,SpeedSamples)
-  #Init_Dir_Net.setTrainData(InputSamples,DirectionSamples)
-  #Init_Speed_Net.trainData()
-  #Init_Dir_Net.trainData()
+  Init_Speed_Net.setTrainData(InputSamples,SpeedSamples)
+  Init_Dir_Net.setTrainData(InputSamples,DirectionSamples)
+  Init_Speed_Net.trainData()
+  Init_Dir_Net.trainData()
   Speed_Parameter = Init_Speed_Net.getParameter()
   Dir_Parameter   = Init_Dir_Net.getParameter()
   del Init_Dir_Net
@@ -170,6 +175,8 @@ def main():
   Max_Gen    = 1
   Max_Iter   = 1
   Train_Num  = 15
+  Top_train_num = 2
+
   Predator_Num = 3
   Prey_Num = 1
   Window_Width = 1000
@@ -195,7 +202,7 @@ def main():
     print '# In Main Loop :'
     print '-- Start Generation ' + str(Generation) + '  --'
     if Generation!= 0:
-      Speed_Parameter, Dir_Parameter = TrainPrevGen(Fitness,Train_Num)
+      Speed_Parameter, Dir_Parameter = TrainPrevGen(Fitness, Train_Num, Top_train_num)
     # --- Iteration Loop --- #
     while Iteration < Max_Iter:
       FilePath = 'Gen_Data/data_sample_gen_' + str(Generation) + '_iter_' + str(Iteration) + '.csv'

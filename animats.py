@@ -263,6 +263,7 @@ class Environment:
     fit = getFit(captured, left_energy, distance, age)
     self.file_fp.write(str(captured) + ' ,' + str(left_energy)+' ,'+str(distance) + ' ,' + str(age)+' ,'+str(fit)+'\n')
 
+
   # Update the Cooperative hunting targets
   def update_cotarget(self):
     if len(self.preys) == 0:

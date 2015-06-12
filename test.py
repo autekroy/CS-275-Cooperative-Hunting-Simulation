@@ -17,18 +17,21 @@ from simulation import *
 
 (InputSamples, SpeedSamples, DirectionSamples, Fitness) = ReadSampleData("sampleData")
 
-input, speed, dir = readTrainData(Fitness,2)
+InputSamples, SpeedSamples, DirectionSamples = readTrainData(Fitness, 15, 3)
+
+input, speed, dir = readTrainData(Fitness,3)
 
 Init_Speed_Net = NNW.NNW(30,42,9)
 Init_Dir_Net = NNW.NNW(30,42,24)
-Init_Speed_Net.setTrainData(InputSamples,SpeedSamples)
-Init_Dir_Net.setTrainData(InputSamples,DirectionSamples)
+Init_Speed_Net.setTrainData(input,speed)
+Init_Dir_Net.setTrainData(input,dir)
 
-Init_Speed_Net.trainOnce()
-Init_Dir_Net.trainOnce()
+# Init_Speed_Net.trainOnce()
+# Init_Dir_Net.trainOnce()
 
 Init_Speed_Net.trainData()
 Init_Dir_Net.trainData()
+
 
 # ============================== Test for reading file ============================
 from readFile import *

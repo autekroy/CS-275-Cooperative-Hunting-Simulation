@@ -46,7 +46,7 @@ class Predator:
     self.prevLoc = np.array([float(x), float(y)])
 
     # velocity
-    self.vel = 1.0
+    self.vel = 10.0
     self.acc = 0.1
     self.direction = Direction.N
     self.direction_text = "N"
